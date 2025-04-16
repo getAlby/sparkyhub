@@ -10,7 +10,6 @@ primary_region = 'fra'
 
 [env]
   BASE_URL = 'https://spark-nwc.fly.dev'
-  PORT = '8080'
 
 [http_service]
   internal_port = 3001
