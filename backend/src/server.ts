@@ -3,7 +3,7 @@ import fastifyStatic from "@fastify/static";
 import fastifyJwt from "@fastify/jwt";
 import path from "path";
 import userRoutes from "./routes/user"; // We'll create this next
-import { WalletService } from "./nwc/wallet_service";
+import { WalletService } from "./nwc/WalletService";
 
 const walletService = new WalletService();
 walletService.subscribe();
