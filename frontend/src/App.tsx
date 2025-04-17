@@ -52,7 +52,7 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-center min-h-screen p-8">
       <img src={Logo} className="mb-5" alt="Logo" /> {/* Added alt text */}
       <Routes>
         {/* Public routes */}
