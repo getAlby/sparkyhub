@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { MnemonicManager } from "./components/MnemonicManager";
 import { ShieldIcon } from "lucide-react";
 import { Button } from "./components/ui/button";
+import SparkleEffect from "./components/SparkleEffect";
 
 // A component to protect routes that require authentication
 const ProtectedRoute = ({
@@ -53,8 +54,12 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-8">
-      <img src={Logo} className="mb-5" alt="Logo" /> {/* Added alt text */}
+    <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
+      <SparkleEffect count={70} />
+      <div className="flex flex-col gap-3 items-center justify-center mb-10">
+        <img src={Logo} alt="Logo" /> {/* Added alt text */}
+        <p className="text-muted-foreground">Simple web bitcoin wallet that connects to apps</p>
+      </div>
       <Routes>
         {/* Public routes */}
         <Route
