@@ -127,7 +127,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
   };
 
   return (
-    <>
+    <div className="bg-gray-500 p-4 mt-8">
       {/* --- Mnemonic Import Section --- */}
       <hr style={{ margin: "40px 0" }} />
       <h2>Security Settings</h2>
@@ -153,7 +153,9 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
             resize: "vertical",
           }}
         />
-        <button type="submit">Import Mnemonic</button>
+        <button className="p-4 cursor-pointer bg-green-300" type="submit">
+          Import Mnemonic
+        </button>
         {mnemonicMessage && (
           <p
             style={{
@@ -170,7 +172,12 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
       <div style={{ marginTop: "20px" }}>
         <h3>Backup Recovery Phrase</h3>
         {!showMnemonic ? (
-          <button onClick={handleShowMnemonic}>Show Recovery Phrase</button>
+          <button
+            className="p-4 cursor-pointer bg-green-300"
+            onClick={handleShowMnemonic}
+          >
+            Show Recovery Phrase
+          </button>
         ) : (
           <div
             style={{
@@ -257,6 +264,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                   </label>
                 </div>
                 <button
+                  className="p-4 cursor-pointer bg-green-300"
                   onClick={() => {
                     navigator.clipboard
                       .writeText(mnemonicWords.join(" "))
@@ -272,6 +280,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                   Dangerously Copy
                 </button>
                 <button
+                  className="ml-2 p-4 cursor-pointer bg-green-300"
                   onClick={handleCloseMnemonicView}
                   disabled={!backupConfirmed} // Disable button until checkbox is checked
                   style={{ marginTop: "15px" }}
@@ -285,7 +294,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

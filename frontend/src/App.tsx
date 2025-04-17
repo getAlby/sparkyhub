@@ -1,149 +1,133 @@
-import { useState, FormEvent, useEffect } from "react"; // Import useEffect
-import "./App.css";
-import AppsManager from "./components/AppsManager"; // Import the new component
+import React, { useState } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // Import routing components
+import AppsManager from "./components/AppsManager";
+import LoginPage from "./pages/Login"; // Import LoginPage
+import SignupPage from "./pages/Signup"; // Import SignupPage
+import Logo from "./assets/logo.svg";
+import { toast } from "sonner";
 import { MnemonicManager } from "./components/MnemonicManager";
+import { ShieldIcon } from "lucide-react";
+import { Button } from "./components/ui/button";
+
+// A component to protect routes that require authentication
+const ProtectedRoute = ({
+  token,
+  children,
+}: {
+  token: string | null;
+  children: React.ReactNode;
+}) => {
+  if (!token) {
+    // Redirect them to the /login page, but save the current location they were
+    // trying to go to when they were redirected. This allows us to send them
+    // along to that page after they login, which is a nicer user experience
+    // than dropping them off on the home page.
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>; // Render children if token exists
+};
 
 function App() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [token, setToken] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  // Keep token state here to manage authentication globally
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("authToken")
+  ); // Initialize from localStorage
 
-  // Check localStorage for token on initial load
-  useEffect(() => {
-    const storedToken = localStorage.getItem("jwtToken");
-    if (storedToken) {
-      setToken(storedToken);
-      // Optionally, you might want to fetch user details here based on the token
-      // For simplicity, we'll just restore the token state.
-      // You might need to store/retrieve username too if needed outside login flow.
-      setMessage("Session restored.");
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  const handleSignup = async (e: FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-    setToken(null);
-    try {
-      const response = await fetch("/api/users/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("jwtToken", data.token); // Save token to localStorage
-        setToken(data.token);
-        setMessage("Signup successful!");
-        console.log("Signup successful, token:", data.token);
-      } else {
-        localStorage.removeItem("jwtToken"); // Clear token on failure
-        setMessage(`Signup failed: ${data.message || "Unknown error"}`);
-        console.error("Signup failed:", data);
-      }
-    } catch (error) {
-      localStorage.removeItem("jwtToken"); // Clear token on error
-      setMessage("Signup failed: Network error or server unavailable.");
-      console.error("Signup error:", error);
+  const handleSetToken = (newToken: string | null) => {
+    setToken(newToken);
+    if (newToken) {
+      localStorage.setItem("authToken", newToken); // Store token in localStorage
+    } else {
+      localStorage.removeItem("authToken"); // Remove token from localStorage on logout
     }
   };
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-    setToken(null);
-    try {
-      const response = await fetch("/api/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("jwtToken", data.token); // Save token to localStorage
-        setToken(data.token);
-        setMessage("Login successful!");
-        console.log("Login successful, token:", data.token);
-      } else {
-        localStorage.removeItem("jwtToken"); // Clear token on failure
-        setMessage(`Login failed: ${data.message || "Unknown error"}`);
-        console.error("Login failed:", data);
-      }
-    } catch (error) {
-      localStorage.removeItem("jwtToken"); // Clear token on error
-      setMessage("Login failed: Network error or server unavailable.");
-      console.error("Login error:", error);
-    }
+  const [showSecurity, setShowSecurity] = React.useState(false);
+  const toggleSecurity = () => setShowSecurity((current) => !current);
+
+  const handleLogout = () => {
+    handleSetToken(null);
+    toast("Logged out.");
+    // No need to clear username/password state as it's managed in pages now
   };
 
   return (
-    <>
-      <h1>Fastify + React Auth</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen py-8">
+      <img src={Logo} className="mb-5" alt="Logo" /> {/* Added alt text */}
+      <Routes>
+        {/* Public routes */}
+        <Route
+          path="/login"
+          element={
+            token ? (
+              <Navigate to="/" />
+            ) : (
+              <LoginPage setToken={handleSetToken} />
+            )
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            token ? (
+              <Navigate to="/" />
+            ) : (
+              <SignupPage setToken={handleSetToken} />
+            )
+          }
+        />
 
-      {!token ? (
-        <div>
-          <h2>Signup or Login</h2>
-          <form>
-            <div>
-              <label htmlFor="username">Username:</label>
-              <input
-                type="text"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="password">Password:</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" onClick={handleSignup}>
-              Sign Up
-            </button>
-            <button type="submit" onClick={handleLogin}>
-              Login
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div>
-          <h2>Welcome, {username}!</h2>
-          <p>You are logged in.</p>
-          <p>
-            Token: <code>{token}</code>
-          </p>
-          <button
-            onClick={() => {
-              localStorage.removeItem("jwtToken"); // Remove token from localStorage
-              setToken(null);
-              setUsername(""); // Clear username on logout
-              setPassword(""); // Clear password on logout
-              setMessage("Logged out.");
-            }}
-          >
-            Logout
-          </button>
-          <hr /> {/* Add a separator */}
-          {/* Pass the token to AppsManager */}
-          <AppsManager token={token} />
-          <MnemonicManager token={token} />
-        </div>
-      )}
+        {/* Protected routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute token={token}>
+              {/* Outlet renders nested routes or the main content */}
+              <Outlet />
+            </ProtectedRoute>
+          }
+        >
+          {/* Default protected route content (e.g., dashboard) */}
+          <Route
+            index
+            element={
+              <div className="w-full max-w-4xl px-4">
+                {" "}
+                {/* Added container for content */}
+                {/* Removed welcome message, AppsManager is the main content now */}
+                {/* <p>
+                 Token: <code>{token}</code>
+               </p> */}
+                <div className="flex justify-end mb-8 gap-4 -mt-14">
+                  <Button
+                    variant="outline"
+                    onClick={toggleSecurity} size="icon">
+                    <ShieldIcon />
+                  </Button>
+                  <Button
+                    className="backdrop-blur-xs"
+                    variant="outline"
+                    onClick={handleLogout}>
+                    Logout
+                  </Button>
+                </div>
+                {token && <AppsManager token={token} />}
+                {/* Render AppsManager only if token exists */}
+                {token && showSecurity && <MnemonicManager token={token} />}
+              </div>
+            }
+          />
+          {/* Add other protected routes here if needed */}
+        </Route>
 
-      {message && <p style={{ color: token ? "green" : "red" }}>{message}</p>}
-    </>
+        {/* Fallback for unknown routes */}
+        <Route
+          path="*"
+          element={<Navigate to={token ? "/" : "/login"} replace />}
+        />
+      </Routes>
+    </div>
   );
 }
 

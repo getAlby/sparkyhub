@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
+import { Button } from "./ui/button";
+import { CirclePlus } from "lucide-react";
+import { Input } from "./ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 interface App {
   name: string;
@@ -126,18 +136,28 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
 
   return (
     <div>
-      <h2>Manage Your Apps</h2>
       {/* Form to create a new app */}
-      <form onSubmit={handleCreateApp} style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          value={newAppName}
-          onChange={(e) => setNewAppName(e.target.value)}
-          placeholder="New App Name"
-          required
-          style={{ marginRight: "10px" }}
-        />
-        <button type="submit">+ Connect New App</button>
+      <form onSubmit={handleCreateApp}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Create a new app</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input
+              type="text"
+              value={newAppName}
+              onChange={(e) => setNewAppName(e.target.value)}
+              placeholder="New App Name"
+              required
+            />
+          </CardContent>
+          <CardFooter>
+            <Button type="submit">
+              <CirclePlus className="w-4 h-4 mr-2" />
+              Connect App
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
       {/* Display NWC URL and QR code if available */}
       {lastCreatedNwcUrl && (
@@ -170,7 +190,7 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
         </div>
       )}
       {/* Display existing apps */}
-      <h3 style={{ marginTop: "30px" }}>Connected Apps:</h3>
+      <h3 className="text-2xl font-semibold my-5">Connected Apps</h3>
       {isLoading && <p>Loading apps...</p>}
       {error && !lastCreatedNwcUrl && (
         <p style={{ color: "red" }}>Error: {error}</p>
@@ -181,13 +201,18 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
           {apps.length === 0 ? (
             <p>No apps connected yet.</p>
           ) : (
-            <ul>
+            <div className="grid grid-cols-1 gap-3">
               {apps.map((app, index) => (
-                <li key={index}>
-                  <strong>{app.name}</strong>: <code>{app.pubkey}</code>
-                </li>
+                <Card key={index}>
+                  <CardHeader>
+                    <CardTitle>{app.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="break-words">
+                    {app.pubkey}
+                  </CardContent>
+                </Card>
               ))}
-            </ul>
+            </div>
           )}
         </>
       )}
