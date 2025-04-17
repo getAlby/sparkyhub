@@ -68,6 +68,7 @@ export class SparkLNBackend implements LNBackend {
       "get_info",
       "make_invoice",
       "pay_invoice",
+      "get_balance",
       "lookup_invoice",
       "list_transactions",
     ];
