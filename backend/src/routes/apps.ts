@@ -110,7 +110,10 @@ async function appRoutes(
         await options.walletService.subscribe(
           newApp.clientPubkey,
           newApp.walletServiceSecretKey,
-          userLnBackend // Pass the cached backend instance
+          userLnBackend, // Pass the cached backend instance
+          userId, // Pass user ID
+          newApp.id, // Pass the newly created app ID
+          options.prisma // Pass prisma instance
         );
         fastify.log.info(
           `Successfully subscribed NWC listener for new app ${newApp.clientPubkey}`

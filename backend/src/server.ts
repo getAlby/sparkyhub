@@ -81,7 +81,10 @@ const start = async () => {
             await walletService.subscribe(
               app.clientPubkey,
               app.walletServiceSecretKey,
-              lnBackend // Use the initialized & cached backend
+              lnBackend, // Use the initialized & cached backend
+              user.id, // Pass user ID
+              app.id, // Pass app ID
+              prisma // Pass prisma instance
             );
             fastify.log.info(
               `Subscribed NWC for app '${app.name}' (ID: ${app.id}) of user ${user.id}`

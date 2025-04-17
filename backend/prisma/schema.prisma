@@ -18,6 +18,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   apps         App[]    // Relation to App model
+  transactions Transaction[] // Relation to Transaction model
 }
 
 model App {
@@ -29,6 +30,30 @@ model App {
   updatedAt              DateTime @updatedAt
   userId                 Int      // Foreign key to User
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Relation field
+  transactions Transaction[] // Relation to Transaction model
 
   @@index([userId])
+}
+
+model Transaction {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  appId          Int
+  type           String // "incoming" or "outgoing"
+  state          String   @default("pending") // "pending", "settled", or "failed"
+  invoice        String   @unique
+  payment_hash   String   @unique
+  amount_msat    BigInt // Still BigInt for potentially large msat amounts
+  fees_paid_msat Int? // Fees paid in millisatoshis (nullable for incoming, Int as requested)
+  description    String?
+  settled_at     DateTime?
+  created_at     DateTime @default(now())
+  expires_at     DateTime // Non-nullable expiry date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app  App  @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([appId])
+  @@index([payment_hash])
 }
