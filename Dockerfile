@@ -26,6 +26,7 @@ RUN yarn install --frozen-lockfile
 COPY backend/ ./
 
 # Build the backend
+RUN yarn run db:generate
 RUN yarn build
 
 # ---- Production Stage ----
