@@ -36,19 +36,21 @@ model App {
 }
 
 model Transaction {
-  id             Int      @id @default(autoincrement())
-  userId         Int
-  appId          Int
-  type           String // "incoming" or "outgoing"
-  state          String   @default("pending") // "pending", "settled", or "failed"
-  invoice        String   @unique
-  payment_hash   String   @unique
-  amount_msat    BigInt // Still BigInt for potentially large msat amounts
-  fees_paid_msat Int? // Fees paid in millisatoshis (nullable for incoming, Int as requested)
-  description    String?
-  settled_at     DateTime?
-  created_at     DateTime @default(now())
-  expires_at     DateTime // Non-nullable expiry date
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  appId            Int
+  type             String // "incoming" or "outgoing"
+  state            String   @default("pending") // "pending", "settled", or "failed"
+  invoice          String   @unique
+  payment_hash     String   @unique
+  preimage         String?  @unique
+  amount_msat      BigInt // Still BigInt for potentially large msat amounts
+  fees_paid_msat   Int? // Fees paid in millisatoshis (nullable for incoming, Int as requested)
+  description      String?
+  settled_at       DateTime?
+  created_at       DateTime @default(now())
+  expires_at       DateTime // Non-nullable expiry date
+  spark_request_id String   @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   app  App  @relation(fields: [appId], references: [id], onDelete: Cascade)

@@ -1,5 +1,8 @@
 import { nwc } from "@getalby/sdk";
 
+// FIXME: this needs to be re-thought a bit
+// since LNBackend does not have access to DB
+// transactions
 export interface LNBackend {
   listTransactions(
     request: nwc.Nip47ListTransactionsRequest
@@ -8,10 +11,11 @@ export interface LNBackend {
   getSupportedMethods(): nwc.Nip47SingleMethod[];
   makeInvoice(
     request: nwc.Nip47MakeInvoiceRequest
-  ): Promise<nwc.Nip47Transaction>;
-  lookupInvoice(
-    request: nwc.Nip47LookupInvoiceRequest
-  ): Promise<nwc.Nip47Transaction>;
+  ): Promise<nwc.Nip47Transaction & { sparkRequestId?: string }>;
+  lookupInvoice(request: {
+    type: nwc.Nip47Transaction["type"];
+    sparkRequestId: string;
+  }): Promise<{ preimage?: string }>;
   getBalance(): Promise<nwc.Nip47GetBalanceResponse>;
   payInvoice(
     request: nwc.Nip47PayInvoiceRequest

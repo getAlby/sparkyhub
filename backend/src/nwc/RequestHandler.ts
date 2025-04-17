@@ -1,6 +1,7 @@
 import { nwc } from "@getalby/sdk";
 import { LNBackend } from "../ln/LNBackend";
-import { PrismaClient } from "@prisma/client"; // Import Prisma Client
+import { PrismaClient, Transaction } from "@prisma/client"; // Import Prisma Client
+import { Nip47Transaction } from "@getalby/sdk/dist/nwc";
 
 export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
   private readonly _wallet: LNBackend;
@@ -36,6 +37,12 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
 
       // Save transaction to DB after successful invoice creation
       try {
+        const spark_request_id = result.metadata?.spark_request_id as
+          | string
+          | undefined;
+        if (!spark_request_id) {
+          throw new Error("No spark request ID in response");
+        }
         await this._prisma.transaction.create({
           data: {
             userId: this._userId,
@@ -52,6 +59,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
               : null,
             created_at: new Date(result.created_at * 1000), // Convert seconds epoch to Date
             expires_at: new Date(result.expires_at * 1000), // Convert seconds epoch to Date (assuming it's always present)
+            spark_request_id,
           },
         });
         console.log(
@@ -85,9 +93,51 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
   async lookupInvoice(
     request: nwc.Nip47LookupInvoiceRequest
   ): nwc.NWCWalletServiceResponsePromise<nwc.Nip47Transaction> {
-    const result = await this._wallet.lookupInvoice(request);
+    if (!request.invoice && !request.payment_hash) {
+      throw new Error("No payment_hash or invoice specified");
+    }
+    let transaction = await this._prisma.transaction.findUnique({
+      where: request.payment_hash
+        ? {
+            payment_hash: request.payment_hash,
+          }
+        : {
+            invoice: request.invoice,
+          },
+    });
+
+    if (!transaction) {
+      return {
+        error: {
+          code: "NOT_FOUND",
+          message: "transaction was not found",
+        },
+        result: undefined,
+      };
+    }
+
+    if (transaction.state !== ("settled" satisfies Nip47Transaction["state"])) {
+      const result = await this._wallet.lookupInvoice({
+        type: transaction.type as Nip47Transaction["type"],
+        sparkRequestId: transaction.spark_request_id,
+      });
+      if (result.preimage) {
+        transaction = await this._prisma.transaction.update({
+          where: {
+            id: transaction.id,
+          },
+          data: {
+            preimage: result.preimage,
+            settled_at: new Date(),
+            state: "settled" satisfies Nip47Transaction["state"],
+            fees_paid_msat: 0, // TODO:
+          },
+        });
+      }
+    }
+
     return {
-      result,
+      result: mapDBTransaction(transaction),
       error: undefined,
     };
   }
@@ -102,6 +152,8 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
     request: nwc.Nip47PayInvoiceRequest
   ): nwc.NWCWalletServiceResponsePromise<nwc.Nip47PayResponse> {
     try {
+      // TODO: save the transaction
+
       const result = await this._wallet.payInvoice(request);
       return {
         result,
@@ -121,10 +173,43 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
   async listTransactions(
     request: nwc.Nip47ListTransactionsRequest
   ): nwc.NWCWalletServiceResponsePromise<nwc.Nip47ListTransactionsResponse> {
-    const result = await this._wallet.listTransactions(request);
+    await this._wallet.listTransactions(request);
+
+    const transactions = await this._prisma.transaction.findMany({
+      where: {
+        userId: this._userId,
+        appId: this._appId,
+      },
+    });
+
     return {
-      result,
+      result: {
+        transactions: transactions.map(mapDBTransaction),
+        total_count: transactions.length,
+      },
       error: undefined,
     };
   }
+}
+
+function mapDBTransaction(transaction: Transaction): Nip47Transaction {
+  return {
+    amount: Number(transaction.amount_msat),
+    created_at: Math.floor(transaction.created_at.getTime() / 1000),
+    description: transaction.description || "",
+    description_hash: "",
+    expires_at: Math.floor(transaction.expires_at.getTime() / 1000),
+    fees_paid: transaction.fees_paid_msat || 0,
+    invoice: transaction.invoice,
+    payment_hash: transaction.payment_hash,
+    preimage: transaction.preimage || "",
+    settled_at: transaction.settled_at
+      ? Math.floor(transaction.settled_at.getTime() / 1000)
+      : 0,
+    state: transaction.state as Nip47Transaction["state"],
+    type: transaction.type as Nip47Transaction["type"],
+    metadata: {
+      spark_request_id: transaction.spark_request_id,
+    },
+  };
 }
