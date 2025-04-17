@@ -1,6 +1,10 @@
 import { useState, FormEvent } from "react";
-import "./App.css";
 import AppsManager from "./components/AppsManager"; // Import the new component
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import { Label } from "@radix-ui/react-label";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import Logo from "./assets/logo.svg";
 
 function App() {
   const [username, setUsername] = useState("");
@@ -64,12 +68,56 @@ function App() {
 
   return (
     <>
-      <h1>Sparky Hub</h1>
+    <div className="flex flex-col items-center justify-center h-full">
+      <img src={Logo} className="my-5" />
 
       {!token ? (
-        <div>
-          <h2>Signup or Login</h2>
-          <form>
+          <div className="flex flex-col gap-6 w-sm mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Login</CardTitle>
+                <CardDescription>
+                  Enter your email below to login to your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form>
+                  <div className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <div className="flex items-center">
+                        <Label htmlFor="password">Password</Label>
+                        <a
+                          href="#"
+                          className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                        >
+                          Forgot your password?
+                        </a>
+                      </div>
+                      <Input id="password" type="password" required />
+                    </div>
+                    <Button type="submit" className="w-full">
+                      Login
+                    </Button>
+                  </div>
+                  <div className="mt-4 text-center text-sm">
+                    Don't have an account?{" "}
+                    <a href="#" className="underline underline-offset-4">
+                      Sign up
+                    </a>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          {/* <form>
             <div>
               <label htmlFor="username">Username:</label>
               <input
@@ -96,10 +144,10 @@ function App() {
             <button type="submit" onClick={handleLogin}>
               Login
             </button>
-          </form>
+          </form> */}
         </div>
       ) : (
-        <div>
+        <div className="">
           <h2>Welcome, {username}!</h2>
           <p>You are logged in.</p>
           <p>
@@ -122,6 +170,8 @@ function App() {
       )}
 
       {message && <p style={{ color: token ? "green" : "red" }}>{message}</p>}
+
+      </div>
     </>
   );
 }
