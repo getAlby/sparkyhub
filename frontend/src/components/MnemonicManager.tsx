@@ -257,6 +257,21 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                   </label>
                 </div>
                 <button
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(mnemonicWords.join(" "))
+                      .then(() => {
+                        alert("Dangerously Copied!");
+                      })
+                      .catch((err) => {
+                        console.error("Failed to copy text: ", err);
+                        alert("Failed to copy");
+                      });
+                  }}
+                >
+                  Dangerously Copy
+                </button>
+                <button
                   onClick={handleCloseMnemonicView}
                   disabled={!backupConfirmed} // Disable button until checkbox is checked
                   style={{ marginTop: "15px" }}
