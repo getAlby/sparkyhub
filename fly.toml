@@ -10,7 +10,7 @@ primary_region = 'fra'
 
 [env]
   BASE_URL = 'https://spark-nwc.fly.dev'
-  DATABASE_URL = 'file:/data/database.db'
+  DATABASE_URL = 'file:/data/spark-nwc.db'
 
 [http_service]
   internal_port = 3001
@@ -28,8 +28,9 @@ primary_region = 'fra'
     path = '/ping'
 
 [mounts]
-  source = "data"
+  source = "spark_nwc_data"
   destination = "/data"
+  initial_size = '1'
 
 [[vm]]
   memory = '1gb'

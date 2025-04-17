@@ -26,6 +26,7 @@ RUN yarn install --frozen-lockfile
 COPY backend/ ./
 
 # Build the backend
+RUN yarn run db:generate
 RUN yarn build
 
 # ---- Production Stage ----
@@ -44,8 +45,11 @@ COPY --from=backend-builder /app/backend/dist ./backend/dist
 # The backend expects these relative to its own location after build
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
+# Copy Prisma schema and migrations
+COPY backend/prisma ./backend/prisma/
+
 # Expose the port the backend listens on
 EXPOSE 3001
 
 # Command to run the backend server
-CMD ["node", "backend/dist/server.js"]
+CMD cd backend && yarn db:migrate && yarn start:prod
