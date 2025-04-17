@@ -7,6 +7,7 @@ import Logo from "./assets/logo.svg";
 import { toast } from "sonner";
 import { MnemonicManager } from "./components/MnemonicManager";
 import { ShieldIcon } from "lucide-react";
+import { Button } from "./components/ui/button";
 
 // A component to protect routes that require authentication
 const ProtectedRoute = ({
@@ -98,20 +99,20 @@ function App() {
                 {/* <p>
                  Token: <code>{token}</code>
                </p> */}
-                <div className="flex justify-end mb-4 gap-4">
-                  {" "}
-                  {/* Position logout button */}
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm underline cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                  <button onClick={toggleSecurity} className="cursor-pointer">
+                <div className="flex justify-end mb-8 gap-4 -mt-14">
+                  <Button
+                    variant="outline"
+                    onClick={toggleSecurity} size="icon">
                     <ShieldIcon />
-                  </button>
+                  </Button>
+                  <Button
+                    className="backdrop-blur-xs"
+                    variant="outline"
+                    onClick={handleLogout}>
+                    Logout
+                  </Button>
                 </div>
-                {token && <AppsManager token={token} />}{" "}
+                {token && <AppsManager token={token} />}
                 {/* Render AppsManager only if token exists */}
                 {token && showSecurity && <MnemonicManager token={token} />}
               </div>
