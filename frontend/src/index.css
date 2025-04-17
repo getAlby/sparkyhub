@@ -116,7 +116,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('./assets/bg.jpg');
+    background-image: url("./assets/bg.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
