@@ -101,13 +101,13 @@ function App() {
                 <div className="flex justify-end mb-4 gap-4">
                   {" "}
                   {/* Position logout button */}
-                  <button onClick={handleLogout} className="text-sm underline">
-                    Logout
-                  </button>
                   <button
-                    onClick={toggleSecurity}
+                    onClick={handleLogout}
                     className="text-sm underline cursor-pointer"
                   >
+                    Logout
+                  </button>
+                  <button onClick={toggleSecurity} className="cursor-pointer">
                     <ShieldIcon />
                   </button>
                 </div>
