@@ -44,7 +44,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setToken }) => {
 
     return (
         <div className="flex flex-col items-center justify-center w-full">
-            <Card className="w-full max-w-sm">
+            <Card className="w-full max-w-sm bg-card/40 backdrop-blur-xl">
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
