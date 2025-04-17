@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react"; // Import useEffect
 import "./App.css";
 import AppsManager from "./components/AppsManager"; // Import the new component
 
@@ -7,6 +7,18 @@ function App() {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+
+  // Check localStorage for token on initial load
+  useEffect(() => {
+    const storedToken = localStorage.getItem("jwtToken");
+    if (storedToken) {
+      setToken(storedToken);
+      // Optionally, you might want to fetch user details here based on the token
+      // For simplicity, we'll just restore the token state.
+      // You might need to store/retrieve username too if needed outside login flow.
+      setMessage("Session restored.");
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,14 +34,17 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
+        localStorage.setItem("jwtToken", data.token); // Save token to localStorage
         setToken(data.token);
         setMessage("Signup successful!");
         console.log("Signup successful, token:", data.token);
       } else {
+        localStorage.removeItem("jwtToken"); // Clear token on failure
         setMessage(`Signup failed: ${data.message || "Unknown error"}`);
         console.error("Signup failed:", data);
       }
     } catch (error) {
+      localStorage.removeItem("jwtToken"); // Clear token on error
       setMessage("Signup failed: Network error or server unavailable.");
       console.error("Signup error:", error);
     }
@@ -49,14 +64,17 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
+        localStorage.setItem("jwtToken", data.token); // Save token to localStorage
         setToken(data.token);
         setMessage("Login successful!");
         console.log("Login successful, token:", data.token);
       } else {
+        localStorage.removeItem("jwtToken"); // Clear token on failure
         setMessage(`Login failed: ${data.message || "Unknown error"}`);
         console.error("Login failed:", data);
       }
     } catch (error) {
+      localStorage.removeItem("jwtToken"); // Clear token on error
       setMessage("Login failed: Network error or server unavailable.");
       console.error("Login error:", error);
     }
@@ -107,9 +125,10 @@ function App() {
           </p>
           <button
             onClick={() => {
+              localStorage.removeItem("jwtToken"); // Remove token from localStorage
               setToken(null);
-              setUsername("");
-              setPassword("");
+              setUsername(""); // Clear username on logout
+              setPassword(""); // Clear password on logout
               setMessage("Logged out.");
             }}
           >
