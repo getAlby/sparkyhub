@@ -31,7 +31,12 @@ fastify.register(fastifyJwt, {
 });
 
 // Register user routes
-fastify.register(userRoutes, { prefix: "/api/users", prisma, lnBackendCache }); // Pass prisma and cache
+fastify.register(userRoutes, {
+  prefix: "/api/users",
+  walletService,
+  prisma,
+  lnBackendCache,
+}); // Pass prisma and cache
 // Register app routes, passing the walletService, prisma, and cache instances
 fastify.register(appRoutes, {
   prefix: "/api/apps",

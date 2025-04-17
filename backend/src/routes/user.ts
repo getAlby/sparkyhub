@@ -11,17 +11,19 @@ import { generateMnemonic, validateMnemonic } from "@scure/bip39"; // Import bip
 import { wordlist } from "@scure/bip39/wordlists/english"; // Import wordlist
 import { PrismaClient, User } from "@prisma/client"; // Import Prisma Client and User type
 import { SparkLNBackend } from "../ln/SparkLNBackend"; // Import SparkLNBackend
+import { WalletService } from "../nwc/WalletService";
 
 // Removed in-memory store and SALT_ROUNDS
 
 interface UserBody {
   username?: string;
   password?: string;
-  mnemonic?: string; // Add mnemonic for the update route
+  mnemonic?: string; // Add mnemonic for the update route // TODO: move to new type
 }
 
 // Define options structure to include Prisma Client and the LN Backend Cache
 interface UserRoutesOptions extends FastifyPluginOptions {
+  walletService: WalletService;
   prisma: PrismaClient;
   lnBackendCache: Map<number, SparkLNBackend>; // User ID to spark backend cache type
 }
@@ -40,7 +42,9 @@ async function userRoutes(
       });
 
       if (!user) {
-        return reply.code(401).send({ message: "Unauthorized: User not found" });
+        return reply
+          .code(401)
+          .send({ message: "Unauthorized: User not found" });
       }
       // Attach user to the request using a type assertion that Fastify understands better
       // We modify the request object directly; Fastify allows this but TS needs guidance.
@@ -175,7 +179,9 @@ async function userRoutes(
     { preHandler: [authenticate] }, // Apply authentication hook
     async (request, reply) => {
       // Assert the request type *inside* the handler to include the user property
-      const req = request as FastifyRequest<{ Body: UserBody }> & { user?: User };
+      const req = request as FastifyRequest<{ Body: UserBody }> & {
+        user?: User;
+      };
       const body = req.body; // Body is already typed by Fastify based on the route generic
       const mnemonic = body.mnemonic;
       const user = req.user; // Get user from the asserted request type
@@ -201,6 +207,9 @@ async function userRoutes(
         const updatedUser = await options.prisma.user.update({
           where: { id: user.id },
           data: { mnemonic: mnemonic }, // Update only the mnemonic
+          include: {
+            apps: true,
+          },
         });
         fastify.log.info(`Mnemonic updated in DB for user ${user.username}`);
 
@@ -213,9 +222,21 @@ async function userRoutes(
 
         // 3. Update the cache with the new backend instance
         options.lnBackendCache.set(updatedUser.id, newLnBackend);
-        fastify.log.info(
-          `LN Backend cache updated for user ${user.username}`
-        );
+        fastify.log.info(`LN Backend cache updated for user ${user.username}`);
+
+        // 4. Re-subscribe to apps
+        // TODO: dynamically replace the existing LNbackend without re-subscribing
+        for (const app of updatedUser.apps) {
+          options.walletService.unsubscribe(app.clientPubkey);
+          options.walletService.subscribe(
+            app.clientPubkey,
+            app.walletServiceSecretKey,
+            newLnBackend,
+            updatedUser.id,
+            app.id,
+            options.prisma
+          );
+        }
 
         return reply.send({ message: "Mnemonic updated successfully" });
       } catch (error: any) {
