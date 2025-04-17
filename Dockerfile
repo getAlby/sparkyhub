@@ -48,4 +48,4 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 EXPOSE 3001
 
 # Command to run the backend server
-CMD ["node", "backend/dist/server.js"]
+CMD yarn db:migrate && yarn start:prod

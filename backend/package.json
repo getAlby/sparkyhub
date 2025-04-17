@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "db:migrate": "prisma migrate dev",
     "start": "nodemon --watch src --ext ts --exec ts-node src/server.ts",
     "start:prod": "node dist/server.js"
   },
