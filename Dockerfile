@@ -44,8 +44,11 @@ COPY --from=backend-builder /app/backend/dist ./backend/dist
 # The backend expects these relative to its own location after build
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
+# Copy Prisma schema and migrations
+COPY backend/prisma ./backend/prisma/
+
 # Expose the port the backend listens on
 EXPOSE 3001
 
 # Command to run the backend server
-CMD yarn db:migrate && yarn start:prod
+CMD cd backend && yarn db:migrate && yarn start:prod
