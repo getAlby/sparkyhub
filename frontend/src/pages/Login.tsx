@@ -48,13 +48,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ setToken }) => {
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
-                        Enter your username and password below to login to your account
+                        Please log in to your wallet by entering your credentials below.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleLogin}> {/* Use onSubmit on the form */}
-                        <div className="flex flex-col gap-6">
-                            <div className="grid gap-2">
+                        <div className="flex flex-col gap-4">
+                            <div className="grid gap-1.5">
                                 <Label htmlFor="username">Username</Label> {/* Corrected htmlFor */}
                                 <Input
                                     id="username"
@@ -64,7 +64,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setToken }) => {
                                     required
                                 />
                             </div>
-                            <div className="grid gap-2">
+                            <div className="grid gap-1.5">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
                                 </div>

@@ -64,8 +64,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSignup}>
-                        <div className="flex flex-col gap-6">
-                            <div className="grid gap-2">
+                        <div className="flex flex-col gap-4">
+                            <div className="grid gap-1.5">
                                 <Label htmlFor="username">Username</Label>
                                 <Input
                                     id="username"
@@ -75,7 +75,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
                                     required
                                 />
                             </div>
-                            <div className="grid gap-2">
+                            <div className="grid gap-1.5">
                                 <Label htmlFor="password">Password</Label>
                                 <Input id="password"
                                     type="password"
