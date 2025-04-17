@@ -126,7 +126,9 @@ export class SparkLNBackend implements LNBackend {
     );
     if (response?.status === "TRANSFER_COMPLETED") {
       // TODO: add fees
-      return { preimage: "fake" };
+      return {
+        preimage: request.sparkRequestId, // FIXME: fake preimage
+      };
     }
     return {};
   }
@@ -152,7 +154,7 @@ export class SparkLNBackend implements LNBackend {
     console.log("Invoice Response:", response);
 
     return {
-      preimage: "fake",
+      preimage: response.id, // FIXME: fake preimage, also need to check status of spark request
       fees_paid: response.fee.originalValue,
     };
   }
