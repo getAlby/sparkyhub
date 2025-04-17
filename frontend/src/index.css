@@ -118,7 +118,7 @@
     @apply bg-background text-foreground;
     background-image: url("./assets/bg.jpg");
     background-size: cover;
-    background-position: center;
+    background-position: 0% 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
   }

@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
+import { LoadingButton } from '@/components/ui/loading-button';
 
 interface SignupPageProps {
     setToken: (token: string | null) => void;
@@ -13,6 +14,7 @@ interface SignupPageProps {
 const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSignup = async (e: FormEvent) => {
@@ -20,6 +22,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
         setToken(null); // Clear previous token if any
 
         try {
+            setLoading(true);
             const response = await fetch("/api/users/signup", {
                 method: "POST",
                 headers: {
@@ -41,11 +44,13 @@ const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
             toast("Signup failed: Network error or server unavailable.");
             console.error("Signup error:", error);
         }
+
+        setLoading(false);
     };
 
     return (
         <div className="flex flex-col items-center justify-center w-full">
-            <Card className="w-full max-w-sm">
+            <Card className="w-full max-w-sm bg-card/40 backdrop-blur-xl">
                 <CardHeader>
                     <CardTitle className="text-2xl">Sign Up</CardTitle>
                     <CardDescription>
@@ -73,9 +78,9 @@ const SignupPage: React.FC<SignupPageProps> = ({ setToken }) => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required />
                             </div>
-                            <Button type="submit" className="w-full">
+                            <LoadingButton type="submit" className="w-full" loading={loading}>
                                 Sign Up
-                            </Button>
+                            </LoadingButton>
                         </div>
                         <div className="mt-4 text-center text-sm">
                             Already have an account?{" "}
