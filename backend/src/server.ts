@@ -26,8 +26,13 @@ fastify.register(fastifyStatic, {
 });
 
 // Register fastify-jwt
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  fastify.log.error("JWT_SECRET environment variable is not set!");
+  process.exit(1);
+}
 fastify.register(fastifyJwt, {
-  secret: "supersecret", // Change this to an environment variable in production!
+  secret: jwtSecret,
 });
 
 // Register user routes
