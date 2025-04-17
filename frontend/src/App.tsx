@@ -1,6 +1,7 @@
 import { useState, FormEvent, useEffect } from "react"; // Import useEffect
 import "./App.css";
 import AppsManager from "./components/AppsManager"; // Import the new component
+import { MnemonicManager } from "./components/MnemonicManager";
 
 function App() {
   const [username, setUsername] = useState("");
@@ -137,6 +138,7 @@ function App() {
           <hr /> {/* Add a separator */}
           {/* Pass the token to AppsManager */}
           <AppsManager token={token} />
+          <MnemonicManager token={token} />
         </div>
       )}
 
