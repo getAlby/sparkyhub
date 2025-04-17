@@ -3,7 +3,13 @@ import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
 import { Button } from "./ui/button";
 import { CirclePlus } from "lucide-react";
 import { Input } from "./ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 interface App {
   name: string;
@@ -46,7 +52,8 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({})); // Try to parse error
           throw new Error(
-            `Failed to fetch apps: ${response.status} ${response.statusText
+            `Failed to fetch apps: ${response.status} ${
+              response.statusText
             } - ${errorData.message || ""}`
           );
         }
@@ -91,7 +98,8 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({})); // Try to parse error
         throw new Error(
-          `Failed to create app: ${response.status} ${response.statusText} - ${errorData.message || ""
+          `Failed to create app: ${response.status} ${response.statusText} - ${
+            errorData.message || ""
           }`
         );
       }
@@ -197,11 +205,9 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
               {apps.map((app, index) => (
                 <Card key={index}>
                   <CardHeader>
-                    <CardTitle>
-                      {app.name}
-                    </CardTitle>
+                    <CardTitle>{app.name}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="break-words">
                     {app.pubkey}
                   </CardContent>
                 </Card>
