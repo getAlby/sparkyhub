@@ -26,12 +26,22 @@ fastify.register(fastifyStatic, {
 });
 
 // Register fastify-jwt
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  fastify.log.error("JWT_SECRET environment variable is not set!");
+  process.exit(1);
+}
 fastify.register(fastifyJwt, {
-  secret: "supersecret", // Change this to an environment variable in production!
+  secret: jwtSecret,
 });
 
 // Register user routes
-fastify.register(userRoutes, { prefix: "/api/users", prisma, lnBackendCache }); // Pass prisma and cache
+fastify.register(userRoutes, {
+  prefix: "/api/users",
+  walletService,
+  prisma,
+  lnBackendCache,
+}); // Pass prisma and cache
 // Register app routes, passing the walletService, prisma, and cache instances
 fastify.register(appRoutes, {
   prefix: "/api/apps",
@@ -81,7 +91,10 @@ const start = async () => {
             await walletService.subscribe(
               app.clientPubkey,
               app.walletServiceSecretKey,
-              lnBackend // Use the initialized & cached backend
+              lnBackend, // Use the initialized & cached backend
+              user.id, // Pass user ID
+              app.id, // Pass app ID
+              prisma // Pass prisma instance
             );
             fastify.log.info(
               `Subscribed NWC for app '${app.name}' (ID: ${app.id}) of user ${user.id}`

@@ -4,6 +4,7 @@ import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 import { nwc } from "@getalby/sdk";
 import { RequestHandler } from "./RequestHandler";
 import { LNBackend } from "../ln/LNBackend"; // Import base type
+import { PrismaClient } from "@prisma/client"; // Import Prisma Client
 
 const RELAY_URL = "wss://relay.getalby.com/v1"; // TODO: Make configurable
 
@@ -22,7 +23,10 @@ export class WalletService {
   async subscribe(
     clientPubkey: string,
     walletServiceSecretKey: string,
-    lnBackend: LNBackend
+    lnBackend: LNBackend,
+    userId: number, // Add userId
+    appId: number, // Add appId
+    prisma: PrismaClient // Add prisma instance
   ) {
     if (this._subscriptions.has(clientPubkey)) {
       console.warn(`Already subscribed for client pubkey: ${clientPubkey}`);
@@ -32,7 +36,7 @@ export class WalletService {
 
     // Create a new RequestHandler specifically for this subscription
     // Ensure the provided lnBackend is initialized *before* calling this subscribe method.
-    const requestHandler = new RequestHandler(lnBackend);
+    const requestHandler = new RequestHandler(lnBackend, userId, appId, prisma);
 
     try {
       await this._walletService.publishWalletServiceInfoEvent(

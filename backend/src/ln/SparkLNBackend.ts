@@ -33,10 +33,20 @@ export class SparkLNBackend implements LNBackend {
     this._wallet = wallet;
   }
 
-  listTransactions(
-    request: Nip47ListTransactionsRequest
+  async listTransactions(
+    _request: Nip47ListTransactionsRequest
   ): Promise<Nip47ListTransactionsResponse> {
-    throw new Error("Method not implemented.");
+    if (!this._wallet) {
+      throw new Error("wallet not initialized");
+    }
+    // always claim. TODO: don't do this as it's inefficient
+    this._wallet.claimTransfers();
+
+    // we use the DB here, we don't go directly to the LN wallet.
+    return {
+      transactions: [],
+      total_count: 0,
+    };
   }
   async getInfo(): Promise<Nip47GetInfoResponse> {
     if (!this._wallet) {
@@ -54,7 +64,14 @@ export class SparkLNBackend implements LNBackend {
     };
   }
   getSupportedMethods(): Nip47SingleMethod[] {
-    return ["get_info", "make_invoice"];
+    return [
+      "get_info",
+      "make_invoice",
+      "pay_invoice",
+      "get_balance",
+      "lookup_invoice",
+      "list_transactions",
+    ];
   }
   async makeInvoice(
     request: Nip47MakeInvoiceRequest
@@ -64,7 +81,7 @@ export class SparkLNBackend implements LNBackend {
     }
 
     const sparkInvoice = await this._wallet.createLightningInvoice({
-      amountSats: 100,
+      amountSats: Math.floor(request.amount / 1000),
       memo: request.description,
     });
 
@@ -86,23 +103,70 @@ export class SparkLNBackend implements LNBackend {
       state: "pending",
       preimage: "",
       settled_at: 0,
-      // metadata: {}, // Optional metadata
+      metadata: {
+        spark_request_id: sparkInvoice.id,
+      },
     };
     return transaction;
   }
-  lookupInvoice(request: Nip47LookupInvoiceRequest): Promise<Nip47Transaction> {
-    throw new Error("Method not implemented.");
+  async lookupInvoice(request: {
+    type: Nip47Transaction["type"];
+    sparkRequestId: string;
+  }): Promise<{ preimage?: string }> {
+    if (!this._wallet) {
+      throw new Error("wallet not initialized");
+    }
+    // always claim. TODO: don't do this as it's inefficient
+    this._wallet.claimTransfers();
+
+    let response;
+    if (request.type === "incoming") {
+      response = await this._wallet.getLightningReceiveRequest(
+        request.sparkRequestId
+      );
+    } else {
+      response = await this._wallet.getLightningSendRequest(
+        request.sparkRequestId
+      );
+    }
+    console.log("Checked spark request", request, response);
+    if (response?.status === "TRANSFER_COMPLETED") {
+      // TODO: add fees
+      return {
+        preimage: request.sparkRequestId, // FIXME: fake preimage
+      };
+    }
+    return {};
   }
   async getBalance(): Promise<Nip47GetBalanceResponse> {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
+    const claimed = await this._wallet.claimTransfers();
+    console.log({ claimed });
     const balance = await this._wallet.getBalance();
     return {
       balance: Number(balance.balance) * 1000,
     };
   }
-  payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
-    throw new Error("Method not implemented.");
+  async payInvoice(
+    request: Nip47PayInvoiceRequest
+  ): Promise<Nip47PayResponse & { sparkRequestId: string }> {
+    if (!this._wallet) {
+      throw new Error("wallet not initialized");
+    }
+    const response = await this._wallet.payLightningInvoice({
+      invoice: request.invoice,
+    });
+
+    console.log("Invoice Response:", response);
+
+    // FIXME: need to check status of spark request
+    // but also need to make sure to return the sparkRequestId so we can save the pending payment
+    return {
+      preimage: response.id, // FIXME: fake preimage
+      fees_paid: response.fee.originalValue,
+      sparkRequestId: response.id,
+    };
   }
 }
