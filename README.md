@@ -22,6 +22,7 @@ This will allow you to access it served as static files from the backend at `loc
 
 ```bash
 cd backend
+cp .env.example .env
 yarn install
 yarn start
 ```

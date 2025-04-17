@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  mnemonic     String   // Store the mnemonic needed to initialize the LN backend // TODO: later this should be encrypted
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  apps         App[]    // Relation to App model
+}
+
+model App {
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  clientPubkey           String   @unique // Public key of the connecting NWC client
+  walletServiceSecretKey String   @unique // Secret key used by this service to connect for this app
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  userId                 Int      // Foreign key to User
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Relation field
+
+  @@index([userId])
+}
