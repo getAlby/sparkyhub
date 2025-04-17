@@ -11,7 +11,7 @@ export interface LNBackend {
   getSupportedMethods(): nwc.Nip47SingleMethod[];
   makeInvoice(
     request: nwc.Nip47MakeInvoiceRequest
-  ): Promise<nwc.Nip47Transaction & { sparkRequestId?: string }>;
+  ): Promise<nwc.Nip47Transaction>;
   lookupInvoice(request: {
     type: nwc.Nip47Transaction["type"];
     sparkRequestId: string;
@@ -19,5 +19,5 @@ export interface LNBackend {
   getBalance(): Promise<nwc.Nip47GetBalanceResponse>;
   payInvoice(
     request: nwc.Nip47PayInvoiceRequest
-  ): Promise<nwc.Nip47PayResponse>;
+  ): Promise<nwc.Nip47PayResponse & { sparkRequestId: string }>;
 }

@@ -2,6 +2,7 @@ import { nwc } from "@getalby/sdk";
 import { LNBackend } from "../ln/LNBackend";
 import { PrismaClient, Transaction } from "@prisma/client"; // Import Prisma Client
 import { Nip47Transaction } from "@getalby/sdk/dist/nwc";
+import { Invoice } from "@getalby/lightning-tools";
 
 export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
   private readonly _wallet: LNBackend;
@@ -63,7 +64,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
           },
         });
         console.log(
-          `Saved pending transaction for invoice ${result.payment_hash} (User: ${this._userId}, App: ${this._appId})`
+          `Saved pending incoming transaction for invoice ${result.payment_hash} (User: ${this._userId}, App: ${this._appId})`
         );
       } catch (dbError) {
         console.error(
@@ -117,6 +118,9 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
     }
 
     if (transaction.state !== ("settled" satisfies Nip47Transaction["state"])) {
+      if (!transaction.spark_request_id) {
+        throw new Error("No spark request ID in transaction");
+      }
       const result = await this._wallet.lookupInvoice({
         type: transaction.type as Nip47Transaction["type"],
         sparkRequestId: transaction.spark_request_id,
@@ -152,9 +156,48 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
     request: nwc.Nip47PayInvoiceRequest
   ): nwc.NWCWalletServiceResponsePromise<nwc.Nip47PayResponse> {
     try {
-      // TODO: save the transaction
+      // TODO: save the transaction as pending
+
+      const invoice = new Invoice({
+        pr: request.invoice,
+      });
+      const transaction = await this._prisma.transaction.create({
+        data: {
+          userId: this._userId,
+          appId: this._appId,
+          type: "outgoing", // makeInvoice creates incoming transactions for the service
+          state: "pending", // Initially pending
+          invoice: request.invoice,
+          payment_hash: invoice.paymentHash,
+          amount_msat: BigInt(invoice.satoshi * 1000), // Convert number to BigInt
+          fees_paid_msat: null, // Use null if undefined
+          description: invoice.description,
+          settled_at: null,
+          created_at: invoice.createdDate,
+          expires_at: invoice.expiryDate || new Date(),
+        },
+      });
+      console.log(
+        `Saved pending outgoing transaction for invoice ${invoice.paymentHash} (User: ${this._userId}, App: ${this._appId})`
+      );
 
       const result = await this._wallet.payInvoice(request);
+
+      // TODO: check if the result was actually paid, otherwise
+      // do not update the transaction (apart from the request id)
+      await this._prisma.transaction.update({
+        where: {
+          id: transaction.id,
+        },
+        data: {
+          preimage: result.preimage,
+          settled_at: new Date(),
+          state: "settled" satisfies Nip47Transaction["state"],
+          fees_paid_msat: 0, // TODO: result.fees_paid, (check it is msat)
+          spark_request_id: result.sparkRequestId,
+        },
+      });
+
       return {
         result,
         error: undefined,

@@ -118,12 +118,17 @@ export class SparkLNBackend implements LNBackend {
     // always claim. TODO: don't do this as it's inefficient
     this._wallet.claimTransfers();
 
-    if (request.type !== "incoming") {
-      throw new Error("TODO");
+    let response;
+    if (request.type === "incoming") {
+      response = await this._wallet.getLightningReceiveRequest(
+        request.sparkRequestId
+      );
+    } else {
+      response = await this._wallet.getLightningSendRequest(
+        request.sparkRequestId
+      );
     }
-    const response = await this._wallet.getLightningReceiveRequest(
-      request.sparkRequestId
-    );
+    console.log("Checked spark request", request, response);
     if (response?.status === "TRANSFER_COMPLETED") {
       // TODO: add fees
       return {
@@ -143,7 +148,9 @@ export class SparkLNBackend implements LNBackend {
       balance: Number(balance.balance) * 1000,
     };
   }
-  async payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
+  async payInvoice(
+    request: Nip47PayInvoiceRequest
+  ): Promise<Nip47PayResponse & { sparkRequestId: string }> {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
@@ -153,9 +160,12 @@ export class SparkLNBackend implements LNBackend {
 
     console.log("Invoice Response:", response);
 
+    // FIXME: need to check status of spark request
+    // but also need to make sure to return the sparkRequestId so we can save the pending payment
     return {
-      preimage: response.id, // FIXME: fake preimage, also need to check status of spark request
+      preimage: response.id, // FIXME: fake preimage
       fees_paid: response.fee.originalValue,
+      sparkRequestId: response.id,
     };
   }
 }

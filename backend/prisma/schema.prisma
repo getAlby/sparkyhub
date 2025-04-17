@@ -50,7 +50,7 @@ model Transaction {
   settled_at       DateTime?
   created_at       DateTime @default(now())
   expires_at       DateTime // Non-nullable expiry date
-  spark_request_id String   @unique
+  spark_request_id String?   @unique
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   app  App  @relation(fields: [appId], references: [id], onDelete: Cascade)
