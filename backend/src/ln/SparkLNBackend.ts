@@ -64,7 +64,13 @@ export class SparkLNBackend implements LNBackend {
     };
   }
   getSupportedMethods(): Nip47SingleMethod[] {
-    return ["get_info", "make_invoice", "lookup_invoice", "list_transactions"];
+    return [
+      "get_info",
+      "make_invoice",
+      "pay_invoice",
+      "lookup_invoice",
+      "list_transactions",
+    ];
   }
   async makeInvoice(
     request: Nip47MakeInvoiceRequest
@@ -128,12 +134,26 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
+    const claimed = await this._wallet.claimTransfers();
+    console.log({ claimed });
     const balance = await this._wallet.getBalance();
     return {
       balance: Number(balance.balance) * 1000,
     };
   }
-  payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
-    throw new Error("Method not implemented.");
+  async payInvoice(request: Nip47PayInvoiceRequest): Promise<Nip47PayResponse> {
+    if (!this._wallet) {
+      throw new Error("wallet not initialized");
+    }
+    const response = await this._wallet.payLightningInvoice({
+      invoice: request.invoice,
+    });
+
+    console.log("Invoice Response:", response);
+
+    return {
+      preimage: "fake",
+      fees_paid: response.fee.originalValue,
+    };
   }
 }

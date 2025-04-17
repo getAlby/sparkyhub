@@ -158,7 +158,7 @@ async function appRoutes(
       });
 
       // Map to the expected frontend format
-      const appListData = appsForUser.map((app) => ({
+      const appListData = appsForUser.map((app: { name: string; clientPubkey: string }) => ({
         name: app.name,
         pubkey: app.clientPubkey,
       }));
