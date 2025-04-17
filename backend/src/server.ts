@@ -10,8 +10,7 @@ import { SparkLNBackend } from "./ln/SparkLNBackend"; // Import LN Backend
 const walletService = new WalletService();
 // Removed: walletService.subscribe();
 
-// Instantiate LN Backend globally
-const lnBackend = new SparkLNBackend();
+// Removed global LN Backend instantiation
 
 const fastify = Fastify({
   logger: true,
@@ -30,8 +29,8 @@ fastify.register(fastifyJwt, {
 
 // Register user routes
 fastify.register(userRoutes, { prefix: "/api/users" });
-// Register app routes, passing the walletService and lnBackend instances
-fastify.register(appRoutes, { prefix: "/api/apps", walletService, lnBackend });
+// Register app routes, passing the walletService instance
+fastify.register(appRoutes, { prefix: "/api/apps", walletService }); // Removed lnBackend
 
 // Fallback route to serve index.html for client-side routing
 fastify.setNotFoundHandler((request, reply) => {
@@ -46,9 +45,7 @@ fastify.setNotFoundHandler((request, reply) => {
 // Run the server
 const start = async () => {
   try {
-    // Initialize LN backend before starting the server
-    await lnBackend.init();
-    fastify.log.info("LN Backend initialized successfully.");
+    // Removed global LN backend initialization
 
     await fastify.listen({ port: 3001, host: "0.0.0.0" }); // Use port 3001 for the backend
     fastify.log.info(

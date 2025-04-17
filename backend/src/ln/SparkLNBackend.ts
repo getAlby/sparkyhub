@@ -14,17 +14,18 @@ import { LNBackend } from "./LNBackend";
 import { SparkWallet } from "@buildonspark/spark-sdk";
 import { Invoice } from "@getalby/lightning-tools";
 
-// TODO: don't hardcode the mnemonic
-const mnemonic =
-  "hundred simple spawn retire priority mother weasel mushroom drop direct wine must";
-
 export class SparkLNBackend implements LNBackend {
   private _wallet?: SparkWallet;
-  constructor() {}
+  private _mnemonic: string; // Store the mnemonic
+
+  constructor(mnemonic: string) {
+    // Accept mnemonic in constructor
+    this._mnemonic = mnemonic;
+  }
 
   async init() {
     const { wallet } = await SparkWallet.initialize({
-      mnemonicOrSeed: mnemonic,
+      mnemonicOrSeed: this._mnemonic, // Use the stored mnemonic
       options: {
         network: "MAINNET",
       },

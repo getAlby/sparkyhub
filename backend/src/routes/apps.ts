@@ -22,11 +22,19 @@ interface App {
 const userApps: Record<string, App[]> = {};
 
 import { LNBackend } from "../ln/LNBackend"; // Import LNBackend type
+import { SparkLNBackend } from "../ln/SparkLNBackend"; // Import SparkLNBackend for user type
 
 // Define the expected options structure passed during registration
 interface AppRoutesOptions extends FastifyPluginOptions {
   walletService: WalletService;
-  lnBackend: LNBackend; // Add lnBackend to options
+  // Removed lnBackend from options
+}
+
+// Define the structure of the user object attached by fastify-jwt
+// This should match the structure stored in routes/user.ts
+interface AuthenticatedUserWithBackend extends AuthenticatedUser {
+  lnBackend: SparkLNBackend;
+  // Add other fields if needed for type safety, though only lnBackend is used here
 }
 
 // Define the structure of the user object attached by fastify-jwt
@@ -60,16 +68,36 @@ async function appRoutes(fastify: FastifyInstance, options: AppRoutesOptions) {
       request: FastifyRequest<{ Body: CreateAppBody }>,
       reply: FastifyReply
     ) => {
-      const user = request.user as AuthenticatedUser; // Type assertion after jwtVerify
-      const username = user.username;
+      const jwtUser = request.user as AuthenticatedUser; // User from JWT payload
+      const username = jwtUser.username;
       const { name } = request.body; // Get name from request body
 
-      if (!name || typeof name !== "string" || name.trim() === "") {
+      // --- Retrieve User's Backend ---
+      // TODO: Replace this with actual database lookup
+      // This assumes the 'users' object from user.ts is accessible here.
+      // In a real app, you'd fetch the user record from the DB based on 'username'.
+      // For this in-memory example, we need a way to access 'users' from user.ts.
+      // Let's assume for now we have a function `getUserData(username)` that returns the full user object.
+      // This part needs refinement based on how user data is actually shared/accessed.
+      // TEMPORARY WORKAROUND: We'll need to import the users object directly (not ideal).
+      // A better approach would be dependency injection or a shared user service.
+      const { users } = await import("../routes/user"); // Temporary direct import
+      const userData = users[username];
+
+      if (!userData || !userData.lnBackend) {
+        fastify.log.error(
+          `Could not find user data or lnBackend for user ${username}`
+        );
         return reply
-          .code(400)
-          .send({
-            message: "App name is required and must be a non-empty string.",
-          });
+          .code(500)
+          .send({ message: "Internal server error: User backend not found." });
+      }
+      const userLnBackend = userData.lnBackend; // Get the pre-initialized backend
+
+      if (!name || typeof name !== "string" || name.trim() === "") {
+        return reply.code(400).send({
+          message: "App name is required and must be a non-empty string.",
+        });
       }
 
       // --- Key Generation Logic ---
@@ -104,13 +132,14 @@ async function appRoutes(fastify: FastifyInstance, options: AppRoutesOptions) {
 
       // --- Trigger WalletService subscription ---
       try {
+        // Pass the user's specific, pre-initialized LN backend instance
         await options.walletService.subscribe(
           newApp.clientPubkey,
           newApp.walletServiceSecretKey,
-          options.lnBackend // Pass the LN backend instance
+          userLnBackend
         );
         fastify.log.info(
-          `Successfully subscribed NWC listener for new app ${newApp.clientPubkey}`
+          `Successfully subscribed NWC listener for new app ${newApp.clientPubkey} using user's backend`
         );
       } catch (error) {
         fastify.log.error(
