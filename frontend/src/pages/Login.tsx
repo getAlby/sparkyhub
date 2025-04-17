@@ -48,7 +48,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setToken }) => {
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
-                        Please log in to your wallet by entering your credentials below.
+                        Sign in to access your wallet
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
