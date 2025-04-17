@@ -98,13 +98,7 @@ function App() {
             index
             element={
               <div className="w-full max-w-4xl px-4">
-                {" "}
-                {/* Added container for content */}
-                {/* Removed welcome message, AppsManager is the main content now */}
-                {/* <p>
-                 Token: <code>{token}</code>
-               </p> */}
-                <div className="flex justify-end mb-8 gap-4 -mt-14">
+                <div className="flex justify-end mb-8 gap-4 -mt-22">
                   <Button
                     variant="outline"
                     onClick={toggleSecurity} size="icon">
@@ -117,13 +111,10 @@ function App() {
                     Logout
                   </Button>
                 </div>
-                {token && <AppsManager token={token} />}
-                {/* Render AppsManager only if token exists */}
-                {token && showSecurity && <MnemonicManager token={token} />}
               </div>
             }
           />
-          {/* Add other protected routes here if needed */}
+          <Route path="/security" element={<MnemonicManager token={token} />} />
         </Route>
 
         {/* Fallback for unknown routes */}
