@@ -64,7 +64,7 @@ function App() {
 
   return (
     <>
-      <h1>Fastify + React Auth</h1>
+      <h1>Sparky Hub</h1>
 
       {!token ? (
         <div>
