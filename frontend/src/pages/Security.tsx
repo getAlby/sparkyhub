@@ -11,20 +11,19 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
-import { useAuth } from "../context/AuthContext"; // Import useAuth
 
-// Remove LoginPageProps interface as setToken is no longer needed
+interface LoginPageProps {
+  setToken: (token: string | null) => void;
+}
 
-const LoginPage: React.FC = () => {
-  // Remove props
+const LoginPage: React.FC<LoginPageProps> = ({ setToken }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get login function from context
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    // No need to clear token here, login function handles setting it
+    setToken(null); // Clear previous token if any
     try {
       const response = await fetch("/api/users/login", {
         method: "POST",
@@ -35,7 +34,7 @@ const LoginPage: React.FC = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        login(data.token); // Use login function from context
+        setToken(data.token);
         toast("Login successful!");
         console.log("Login successful, token:", data.token);
         navigate("/"); // Redirect to home page on successful login
@@ -51,7 +50,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
-      <Card className="w-full max-w-sm bg-card/40 backdrop-blur-xl">
+      <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>Sign in to access your wallet</CardDescription>

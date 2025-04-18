@@ -39,6 +39,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: "Inter var";
 }
 
 :root {
@@ -115,6 +117,7 @@
     @apply border-border outline-ring/50;
   }
   body {
+    @apply font-serif;
     @apply bg-background text-foreground;
     background-image: url("./assets/bg.jpg");
     background-size: cover;

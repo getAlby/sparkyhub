@@ -1,0 +1,65 @@
+/* Sparkle effect container */
+.sparkle-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Individual sparkle styling */
+.sparkle {
+  position: absolute;
+  font-size: var(--size, 16px);
+  color: var(--color, #ffd700);
+  opacity: 0;
+  transform: translateY(0) rotate(0deg);
+  text-shadow: 0 0 5px var(--color, #ffd700), 0 0 8px var(--color, #ffd700);
+  animation: sparkle-animation var(--duration, 3s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Animation keyframes for the main sparkle effect */
+@keyframes sparkle-animation {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  25% {
+    opacity: var(--opacity-max, 0.7);
+  }
+  50% {
+    opacity: var(--opacity-max, 0.7);
+    transform: translateY(-15px) scale(1.2) rotate(var(--rotate, 15deg));
+  }
+  75% {
+    opacity: var(--opacity-max, 0.5);
+  }
+}
+
+/* Secondary subtle pulse animation for some sparkles */
+.sparkle.pulse {
+  animation: sparkle-pulse var(--pulse-duration, 2s) ease-in-out infinite;
+  animation-delay: var(--pulse-delay, 0s);
+}
+
+@keyframes sparkle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: var(--min-opacity, 0.3);
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: var(--max-opacity, 0.8);
+  }
+}

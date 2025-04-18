@@ -1,22 +1,27 @@
-import React, { useState } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // Import routing components
-import AppsManager from "./components/AppsManager";
+import AppsManager from "@/components/AppsManager";
+import { ShieldIcon } from "lucide-react";
+import React from "react"; // Removed useState
+import { Link, Navigate, Outlet, Route, Routes } from "react-router-dom"; // Import routing components
+import { toast } from "sonner";
+import Logo from "./assets/logo.svg";
+import { MnemonicManager } from "./components/MnemonicManager";
+import SparkleEffect from "./components/SparkleEffect";
+import { Button } from "./components/ui/button";
+import { useAuth } from "./context/AuthContext"; // Import useAuth
 import LoginPage from "./pages/Login"; // Import LoginPage
 import SignupPage from "./pages/Signup"; // Import SignupPage
-import Logo from "./assets/logo.svg";
-import { toast } from "sonner";
-import { MnemonicManager } from "./components/MnemonicManager";
-import { ShieldIcon } from "lucide-react";
-import { Button } from "./components/ui/button";
 
 // A component to protect routes that require authentication
-const ProtectedRoute = ({
-  token,
-  children,
-}: {
-  token: string | null;
-  children: React.ReactNode;
-}) => {
+// Refactored ProtectedRoute to use AuthContext
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token, isLoading } = useAuth(); // Use context
+
+  // Show loading indicator while checking auth status
+  if (isLoading) {
+    return <div>Loading authentication...</div>; // Or a proper spinner/skeleton
+  }
+
+  // If not loading and no token, redirect to login
   if (!token) {
     // Redirect them to the /login page, but save the current location they were
     // trying to go to when they were redirected. This allows us to send them
@@ -25,36 +30,38 @@ const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>; // Render children if token exists
+  // If loading is finished and token exists, render the children
+  return <>{children}</>;
 };
 
 function App() {
-  // Keep token state here to manage authentication globally
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("authToken")
-  ); // Initialize from localStorage
+  // Use the Auth context - removed isLoading as it's handled in ProtectedRoute now
+  const { token, logout } = useAuth();
 
-  const handleSetToken = (newToken: string | null) => {
-    setToken(newToken);
-    if (newToken) {
-      localStorage.setItem("authToken", newToken); // Store token in localStorage
-    } else {
-      localStorage.removeItem("authToken"); // Remove token from localStorage on logout
-    }
-  };
-
-  const [showSecurity, setShowSecurity] = React.useState(false);
-  const toggleSecurity = () => setShowSecurity((current) => !current);
-
+  // Handle logout using context
   const handleLogout = () => {
-    handleSetToken(null);
+    logout();
     toast("Logged out.");
-    // No need to clear username/password state as it's managed in pages now
   };
+
+  // Optional: Show a loading state while the token is being loaded from localStorage
+  // This prevents flashing the login page briefly for authenticated users.
+  // However, the ProtectedRoute will also handle loading state.
+  // if (isLoading) {
+  //   return <div>Loading...</div>; // Or a spinner component
+  // }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-8">
-      <img src={Logo} className="mb-5" alt="Logo" /> {/* Added alt text */}
+    <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
+      <SparkleEffect count={70} />
+      <header className="flex flex-col gap-3 items-center justify-center mb-10">
+        <Link to="/" className="z-10">
+          <img src={Logo} alt="Logo" />
+        </Link>
+        <p className="text-muted-foreground">
+          Simple web bitcoin wallet that connects to apps
+        </p>
+      </header>
       <Routes>
         {/* Public routes */}
         <Route
@@ -63,7 +70,7 @@ function App() {
             token ? (
               <Navigate to="/" />
             ) : (
-              <LoginPage setToken={handleSetToken} />
+              <LoginPage /> // Remove setToken prop
             )
           }
         />
@@ -73,7 +80,7 @@ function App() {
             token ? (
               <Navigate to="/" />
             ) : (
-              <SignupPage setToken={handleSetToken} />
+              <SignupPage /> // Remove setToken prop
             )
           }
         />
@@ -82,46 +89,32 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute token={token}>
-              {/* Outlet renders nested routes or the main content */}
-              <Outlet />
-            </ProtectedRoute>
-          }
-        >
-          {/* Default protected route content (e.g., dashboard) */}
-          <Route
-            index
-            element={
-              <div className="w-full max-w-4xl px-4">
-                {" "}
-                {/* Added container for content */}
-                {/* Removed welcome message, AppsManager is the main content now */}
-                {/* <p>
-                 Token: <code>{token}</code>
-               </p> */}
-                <div className="flex justify-end mb-8 gap-4 -mt-14">
-                  <Button
-                    variant="outline"
-                    onClick={toggleSecurity} size="icon">
-                    <ShieldIcon />
-                  </Button>
-                  <Button
-                    className="backdrop-blur-xs"
-                    variant="outline"
-                    onClick={handleLogout}>
+            <>
+              <div className="w-full max-w-screen-md">
+                <div className="flex justify-end gap-4 -mt-29">
+                  <Link to="/security">
+                    <Button variant="outline" size="icon">
+                      <ShieldIcon />
+                    </Button>
+                  </Link>
+                  <Button variant="outline" onClick={handleLogout}>
                     Logout
                   </Button>
                 </div>
-                {token && <AppsManager token={token} />}
-                {/* Render AppsManager only if token exists */}
-                {token && showSecurity && <MnemonicManager token={token} />}
               </div>
-            }
-          />
-          {/* Add other protected routes here if needed */}
+              <div className="flex-1 w-full max-w-screen-md">
+                <ProtectedRoute>
+                  <Outlet />
+                </ProtectedRoute>
+              </div>
+            </>
+          }
+        >
+          <Route index element={<AppsManager />} />
+          <Route path="/security" element={<MnemonicManager />} />
         </Route>
 
-        {/* Fallback for unknown routes */}
+        {/* Fallback for unknown routes - use token from context */}
         <Route
           path="*"
           element={<Navigate to={token ? "/" : "/login"} replace />}
