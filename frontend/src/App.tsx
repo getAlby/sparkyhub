@@ -91,7 +91,7 @@ function App() {
           element={
             <>
               <div className="w-full max-w-screen-md">
-                <div className="flex justify-end mb-8 gap-4 -mt-22">
+                <div className="flex justify-end mb-8 gap-4 -mt-29">
                   <Link to="/security">
                     <Button variant="outline" size="icon">
                       <ShieldIcon />
@@ -106,9 +106,11 @@ function App() {
                   </Button>
                 </div>
               </div>
-              <ProtectedRoute>
-                <Outlet />
-              </ProtectedRoute>
+              <div className="flex-1 w-full max-w-screen-md">
+                <ProtectedRoute>
+                  <Outlet />
+                </ProtectedRoute>
+              </div>
             </>
           }
         >
