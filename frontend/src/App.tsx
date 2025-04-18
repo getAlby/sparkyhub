@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // Import routing components
+import { Routes, Route, Navigate, Outlet, Link } from "react-router-dom"; // Import routing components
 import AppsManager from "./components/AppsManager";
 import LoginPage from "./pages/Login"; // Import LoginPage
 import SignupPage from "./pages/Signup"; // Import SignupPage
@@ -43,9 +43,6 @@ function App() {
       localStorage.removeItem("authToken"); // Remove token from localStorage on logout
     }
   };
-
-  const [showSecurity, setShowSecurity] = React.useState(false);
-  const toggleSecurity = () => setShowSecurity((current) => !current);
 
   const handleLogout = () => {
     handleSetToken(null);
@@ -99,11 +96,13 @@ function App() {
             element={
               <div className="w-full max-w-4xl px-4">
                 <div className="flex justify-end mb-8 gap-4 -mt-22">
-                  <Button
-                    variant="outline"
-                    onClick={toggleSecurity} size="icon">
-                    <ShieldIcon />
-                  </Button>
+                  <Link to="/security">
+                    <Button
+                      variant="outline"
+                      size="icon">
+                      <ShieldIcon />
+                    </Button>
+                  </Link>
                   <Button
                     className="backdrop-blur-xs"
                     variant="outline"

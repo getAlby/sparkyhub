@@ -170,15 +170,14 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
               </p>
             )}
           </form>
-          <div style={{ marginTop: "20px" }}>
+          <div className="flex flex-col gap-4 mt-10">
             <h3 className="font-semibold">Backup Recovery Phrase</h3>
             {!showMnemonic ? (
-              <button
-                className="p-4 cursor-pointer bg-green-300"
+              <Button
                 onClick={handleShowMnemonic}
               >
                 Show Recovery Phrase
-              </button>
+              </Button>
             ) : (
               <div
                 style={{
