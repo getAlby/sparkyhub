@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import { copyToClipboard } from "@/lib/clipboard";
 import { CirclePlus, Copy } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
 import React, { useEffect, useState } from "react";
@@ -116,22 +117,6 @@ const AppsManager: React.FC = () => {
     }
   };
 
-  const copyToClipboard = () => {
-    if (lastCreatedNwcUrl) {
-      navigator.clipboard
-        .writeText(lastCreatedNwcUrl)
-        .then(() => {
-          setCopySuccess("Copied!");
-          setTimeout(() => setCopySuccess(""), 2000); // Clear message after 2s
-        })
-        .catch((err) => {
-          console.error("Failed to copy text: ", err);
-          setCopySuccess("Failed to copy");
-          setTimeout(() => setCopySuccess(""), 2000);
-        });
-    }
-  };
-
   return (
     <div className="w-full max-w-screen-md">
       {/* Form to create a new app */}
@@ -176,7 +161,10 @@ const AppsManager: React.FC = () => {
                 readOnly
                 className="font-mono w-full"
               />
-              <Button onClick={copyToClipboard} variant="outline">
+              <Button
+                onClick={() => copyToClipboard(lastCreatedNwcUrl)}
+                variant="outline"
+              >
                 <Copy className="w-4 h-4 mr-2" />
                 Copy
               </Button>

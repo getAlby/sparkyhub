@@ -91,17 +91,13 @@ function App() {
           element={
             <>
               <div className="w-full max-w-screen-md">
-                <div className="flex justify-end mb-8 gap-4 -mt-29">
+                <div className="flex justify-end gap-4 -mt-29">
                   <Link to="/security">
                     <Button variant="outline" size="icon">
                       <ShieldIcon />
                     </Button>
                   </Link>
-                  <Button
-                    className="backdrop-blur-xs"
-                    variant="outline"
-                    onClick={handleLogout}
-                  >
+                  <Button variant="outline" onClick={handleLogout}>
                     Logout
                   </Button>
                 </div>
