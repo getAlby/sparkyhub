@@ -94,7 +94,6 @@ export function MnemonicManager() {
     setShowMnemonic(true); // Show the section immediately
     // setCurrentMnemonic(null); // Removed
     setMnemonicError(null); // Clear previous errors
-    // setMnemonicCopySuccess(""); // Removed
     try {
       // Use the helper function defined outside, passing the token from context
       const mnemonic = await fetchCurrentMnemonic(token); // Pass token here

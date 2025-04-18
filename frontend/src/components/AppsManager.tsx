@@ -28,8 +28,7 @@ const AppsManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastCreatedNwcUrl, setLastCreatedNwcUrl] = useState<string | null>(
     null
-  ); // State for the last NWC URL
-  const [copySuccess, setCopySuccess] = useState(""); // State for copy feedback
+  );
 
   useEffect(() => {
     // Fetch existing apps only if we have a token
@@ -108,7 +107,6 @@ const AppsManager: React.FC = () => {
       setNewAppName(""); // Clear the input field
       console.log("App created:", newApp);
       setLastCreatedNwcUrl(newApp.nwcUrl); // Store the NWC URL
-      setCopySuccess(""); // Reset copy feedback
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred"
