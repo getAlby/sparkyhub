@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
-import { Button } from "./ui/button";
 import { CirclePlus } from "lucide-react";
-import { Input } from "./ui/input";
+import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
+import React, { useEffect, useState } from "react";
+import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { Input } from "./ui/input";
 
 interface App {
   name: string;
@@ -135,7 +135,7 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
   };
 
   return (
-    <div>
+    <div className="w-full max-w-screen-md">
       {/* Form to create a new app */}
       <form onSubmit={handleCreateApp}>
         <Card>

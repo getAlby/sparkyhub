@@ -1,14 +1,14 @@
+import AppsManager from "@/components/AppsManager";
+import { ShieldIcon } from "lucide-react";
 import React, { useState } from "react";
-import { Routes, Route, Navigate, Outlet, Link } from "react-router-dom"; // Import routing components
-import AppsManager from "./components/AppsManager";
+import { Link, Navigate, Outlet, Route, Routes } from "react-router-dom"; // Import routing components
+import { toast } from "sonner";
+import Logo from "./assets/logo.svg";
+import { MnemonicManager } from "./components/MnemonicManager";
+import SparkleEffect from "./components/SparkleEffect";
+import { Button } from "./components/ui/button";
 import LoginPage from "./pages/Login"; // Import LoginPage
 import SignupPage from "./pages/Signup"; // Import SignupPage
-import Logo from "./assets/logo.svg";
-import { toast } from "sonner";
-import { MnemonicManager } from "./components/MnemonicManager";
-import { ShieldIcon } from "lucide-react";
-import { Button } from "./components/ui/button";
-import SparkleEffect from "./components/SparkleEffect";
 
 // A component to protect routes that require authentication
 const ProtectedRoute = ({
@@ -55,7 +55,9 @@ function App() {
       <SparkleEffect count={70} />
       <header className="flex flex-col gap-3 items-center justify-center mb-10">
         <img src={Logo} alt="Logo" />
-        <p className="text-muted-foreground">Simple web bitcoin wallet that connects to apps</p>
+        <p className="text-muted-foreground">
+          Simple web bitcoin wallet that connects to apps
+        </p>
       </header>
       <Routes>
         {/* Public routes */}
@@ -84,33 +86,37 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute token={token}>
-              {/* Outlet renders nested routes or the main content */}
-              <Outlet />
-            </ProtectedRoute>
-          }
-        >
-          {/* Default protected route content (e.g., dashboard) */}
-          <Route
-            index
-            element={
-              <div className="w-full max-w-4xl px-4">
+            <>
+              <div className="w-full max-w-screen-md">
                 <div className="flex justify-end mb-8 gap-4 -mt-22">
                   <Link to="/security">
-                    <Button
-                      variant="outline"
-                      size="icon">
+                    <Button variant="outline" size="icon">
                       <ShieldIcon />
                     </Button>
                   </Link>
                   <Button
                     className="backdrop-blur-xs"
                     variant="outline"
-                    onClick={handleLogout}>
+                    onClick={handleLogout}
+                  >
                     Logout
                   </Button>
                 </div>
               </div>
+              <ProtectedRoute token={token}>
+                {/* Outlet renders nested routes or the main content */}
+                <Outlet />
+              </ProtectedRoute>
+            </>
+          }
+        >
+          {/* Default protected route content (e.g., dashboard) */}
+          <Route
+            index
+            element={
+              <>
+                <AppsManager token={null} />
+              </>
             }
           />
           <Route path="/security" element={<MnemonicManager token={token} />} />
