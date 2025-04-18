@@ -1,8 +1,8 @@
-import { nwc } from "@getalby/sdk";
-import { LNBackend } from "../ln/LNBackend";
-import { PrismaClient, Transaction } from "@prisma/client"; // Import Prisma Client
-import { Nip47Transaction } from "@getalby/sdk/dist/nwc";
 import { Invoice } from "@getalby/lightning-tools";
+import { nwc } from "@getalby/sdk";
+import { Nip47Transaction } from "@getalby/sdk/dist/nwc";
+import { PrismaClient, Transaction } from "@prisma/client"; // Import Prisma Client
+import { LNBackend } from "../ln/LNBackend";
 
 export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
   private readonly _wallet: LNBackend;
@@ -221,8 +221,36 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
     const transactions = await this._prisma.transaction.findMany({
       where: {
         userId: this._userId,
-        appId: this._appId,
+        // appId: this._appId,
+        ...(request.from && request.until
+          ? {
+              updatedAt: {
+                gte: new Date(request.from * 1000),
+                lte: new Date(request.until * 1000),
+              },
+            }
+          : {}),
+        OR: [
+          {
+            settled_at: {
+              not: null,
+            },
+          },
+          ...(request.unpaid ? [{}] : []),
+          ...(request.unpaid_outgoing
+            ? [
+                {
+                  type: "outgoing",
+                },
+              ]
+            : []),
+        ],
       },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: request.limit || 10,
+      skip: request.offset || 0,
     });
 
     return {
