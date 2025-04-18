@@ -53,10 +53,10 @@ function App() {
   return (
     <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
       <SparkleEffect count={70} />
-      <div className="flex flex-col gap-3 items-center justify-center mb-10">
-        <img src={Logo} alt="Logo" /> {/* Added alt text */}
+      <header className="flex flex-col gap-3 items-center justify-center mb-10">
+        <img src={Logo} alt="Logo" />
         <p className="text-muted-foreground">Simple web bitcoin wallet that connects to apps</p>
-      </div>
+      </header>
       <Routes>
         {/* Public routes */}
         <Route
