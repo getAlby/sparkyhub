@@ -1,23 +1,27 @@
 import AppsManager from "@/components/AppsManager";
 import { ShieldIcon } from "lucide-react";
-import React, { useState } from "react";
+import React from "react"; // Removed useState
 import { Link, Navigate, Outlet, Route, Routes } from "react-router-dom"; // Import routing components
 import { toast } from "sonner";
 import Logo from "./assets/logo.svg";
 import { MnemonicManager } from "./components/MnemonicManager";
 import SparkleEffect from "./components/SparkleEffect";
 import { Button } from "./components/ui/button";
+import { useAuth } from "./context/AuthContext"; // Import useAuth
 import LoginPage from "./pages/Login"; // Import LoginPage
 import SignupPage from "./pages/Signup"; // Import SignupPage
 
 // A component to protect routes that require authentication
-const ProtectedRoute = ({
-  token,
-  children,
-}: {
-  token: string | null;
-  children: React.ReactNode;
-}) => {
+// Refactored ProtectedRoute to use AuthContext
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token, isLoading } = useAuth(); // Use context
+
+  // Show loading indicator while checking auth status
+  if (isLoading) {
+    return <div>Loading authentication...</div>; // Or a proper spinner/skeleton
+  }
+
+  // If not loading and no token, redirect to login
   if (!token) {
     // Redirect them to the /login page, but save the current location they were
     // trying to go to when they were redirected. This allows us to send them
@@ -26,35 +30,34 @@ const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>; // Render children if token exists
+  // If loading is finished and token exists, render the children
+  return <>{children}</>;
 };
 
 function App() {
-  // Keep token state here to manage authentication globally
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("authToken")
-  ); // Initialize from localStorage
+  // Use the Auth context - removed isLoading as it's handled in ProtectedRoute now
+  const { token, logout } = useAuth();
 
-  const handleSetToken = (newToken: string | null) => {
-    setToken(newToken);
-    if (newToken) {
-      localStorage.setItem("authToken", newToken); // Store token in localStorage
-    } else {
-      localStorage.removeItem("authToken"); // Remove token from localStorage on logout
-    }
-  };
-
+  // Handle logout using context
   const handleLogout = () => {
-    handleSetToken(null);
+    logout();
     toast("Logged out.");
-    // No need to clear username/password state as it's managed in pages now
   };
+
+  // Optional: Show a loading state while the token is being loaded from localStorage
+  // This prevents flashing the login page briefly for authenticated users.
+  // However, the ProtectedRoute will also handle loading state.
+  // if (isLoading) {
+  //   return <div>Loading...</div>; // Or a spinner component
+  // }
 
   return (
     <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
       <SparkleEffect count={70} />
       <header className="flex flex-col gap-3 items-center justify-center mb-10">
-        <img src={Logo} alt="Logo" />
+        <Link to="/">
+          <img src={Logo} alt="Logo" />
+        </Link>
         <p className="text-muted-foreground">
           Simple web bitcoin wallet that connects to apps
         </p>
@@ -67,7 +70,7 @@ function App() {
             token ? (
               <Navigate to="/" />
             ) : (
-              <LoginPage setToken={handleSetToken} />
+              <LoginPage /> // Remove setToken prop
             )
           }
         />
@@ -77,7 +80,7 @@ function App() {
             token ? (
               <Navigate to="/" />
             ) : (
-              <SignupPage setToken={handleSetToken} />
+              <SignupPage /> // Remove setToken prop
             )
           }
         />
@@ -103,26 +106,17 @@ function App() {
                   </Button>
                 </div>
               </div>
-              <ProtectedRoute token={token}>
-                {/* Outlet renders nested routes or the main content */}
+              <ProtectedRoute>
                 <Outlet />
               </ProtectedRoute>
             </>
           }
         >
-          {/* Default protected route content (e.g., dashboard) */}
-          <Route
-            index
-            element={
-              <>
-                <AppsManager token={null} />
-              </>
-            }
-          />
-          <Route path="/security" element={<MnemonicManager token={token} />} />
+          <Route index element={<AppsManager />} />
+          <Route path="/security" element={<MnemonicManager />} />
         </Route>
 
-        {/* Fallback for unknown routes */}
+        {/* Fallback for unknown routes - use token from context */}
         <Route
           path="*"
           element={<Navigate to={token ? "/" : "/login"} replace />}

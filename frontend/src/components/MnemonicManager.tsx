@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import React, { useState } from "react"; // Import React for FormEvent type
+import { useAuth } from "../context/AuthContext"; // Import useAuth
 import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 
-type MnemonicManagerProps = {
-  token: string;
-};
+// Remove MnemonicManagerProps as token is no longer passed as prop
 
-export function MnemonicManager({ token }: MnemonicManagerProps) {
+export function MnemonicManager() {
+  // Remove props
+  const { token } = useAuth(); // Get token from context
   const [mnemonicInput, setMnemonicInput] = useState(""); // State for mnemonic input
   const [mnemonicMessage, setMnemonicMessage] = useState<{
     text: string;
@@ -68,7 +69,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
       if (!response.ok) {
         throw new Error(
           data.message ||
-          `Failed to update mnemonic: ${response.status} ${response.statusText}`
+            `Failed to update mnemonic: ${response.status} ${response.statusText}`
         );
       }
 
@@ -95,8 +96,8 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
     setMnemonicError(null); // Clear previous errors
     // setMnemonicCopySuccess(""); // Removed
     try {
-      // Use the helper function defined outside
-      const mnemonic = await fetchCurrentMnemonic(token);
+      // Use the helper function defined outside, passing the token from context
+      const mnemonic = await fetchCurrentMnemonic(token); // Pass token here
       // setCurrentMnemonic(mnemonic); // Removed
       const words = mnemonic.split(" ");
       setMnemonicWords(words);
@@ -130,21 +131,19 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
   };
 
   return (
-    <div className="max-w-screen-sm w-full">
+    <div className="max-w-screen-md w-full">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>
-            Security
-          </CardTitle>
+          <CardTitle>Security</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleUpdateMnemonic} className="flex flex-col gap-4">
             <h3 className="font-semibold">Import Existing Mnemonic</h3>
             <p className="text-muted-foreground text-sm">
               Replace the current wallet's recovery phrase with your own.{" "}
-              <strong>Warning:</strong> This action is irreversible and will change
-              the underlying wallet. Ensure you have backed up the current phrase if
-              needed.
+              <strong>Warning:</strong> This action is irreversible and will
+              change the underlying wallet. Ensure you have backed up the
+              current phrase if needed.
             </p>
 
             <Textarea
@@ -154,11 +153,8 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
               required
               rows={3}
               className="min-h-14 font-mono"
-
             />
-            <Button>
-              Import Mnemonic
-            </Button>
+            <Button>Import Mnemonic</Button>
             {mnemonicMessage && (
               <p
                 className="mt-4"
@@ -173,11 +169,7 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
           <div className="flex flex-col gap-4 mt-10">
             <h3 className="font-semibold">Backup Recovery Phrase</h3>
             {!showMnemonic ? (
-              <Button
-                onClick={handleShowMnemonic}
-              >
-                Show Recovery Phrase
-              </Button>
+              <Button onClick={handleShowMnemonic}>Show Recovery Phrase</Button>
             ) : (
               <div
                 style={{
@@ -188,7 +180,9 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                   margin: "0 auto", // Center the block horizontally
                 }}
               >
-                <p style={{ color: "orange", fontWeight: "bold", marginTop: 0 }}>
+                <p
+                  style={{ color: "orange", fontWeight: "bold", marginTop: 0 }}
+                >
                   ⚠️ Warning: Never share your recovery phrase! Anyone with this
                   phrase can access your funds. Store it securely offline.
                 </p>
@@ -239,7 +233,8 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                               lineHeight: "1",
                             }}
                           >
-                            {wordVisibility[index] ? "👁️‍🗨️" : "👁️"} {/* Eye icons */}
+                            {wordVisibility[index] ? "👁️‍🗨️" : "👁️"}{" "}
+                            {/* Eye icons */}
                           </button>
                         </div>
                       ))}
@@ -259,8 +254,8 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
                         style={{ marginRight: "10px" }}
                       />
                       <label htmlFor="backupConfirmed">
-                        I've backed up my recovery phrase to my wallet in a private
-                        and secure place
+                        I've backed up my recovery phrase to my wallet in a
+                        private and secure place
                       </label>
                     </div>
                     <button
@@ -300,11 +295,12 @@ export function MnemonicManager({ token }: MnemonicManagerProps) {
   );
 }
 
-
-
-
-// Helper function to fetch the current mnemonic (defined outside component)
-async function fetchCurrentMnemonic(token: string): Promise<string> {
+// Helper function to fetch the current mnemonic
+// It now requires the token to be passed explicitly when called
+async function fetchCurrentMnemonic(token: string | null): Promise<string> {
+  if (!token) {
+    throw new Error("Authentication token is missing.");
+  }
   const response = await fetch("/api/users/mnemonic", {
     method: "GET", // Use GET to retrieve
     headers: {

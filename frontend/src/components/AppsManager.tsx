@@ -1,10 +1,12 @@
-import { CirclePlus } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { CirclePlus, Copy } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react"; // Import QR Code component
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -17,12 +19,8 @@ interface App {
   // Add other relevant app properties if needed
 }
 
-// Define props for the component, including the token
-interface AppsManagerProps {
-  token: string | null; // Allow null initially or if logged out
-}
-
-const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
+const AppsManager: React.FC = () => {
+  const { token } = useAuth();
   const [apps, setApps] = useState<App[]>([]);
   const [newAppName, setNewAppName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -147,7 +145,7 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
               type="text"
               value={newAppName}
               onChange={(e) => setNewAppName(e.target.value)}
-              placeholder="New App Name"
+              placeholder="Name"
               required
             />
           </CardContent>
@@ -161,45 +159,42 @@ const AppsManager: React.FC<AppsManagerProps> = ({ token }) => {
       </form>
       {/* Display NWC URL and QR code if available */}
       {lastCreatedNwcUrl && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "15px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
-        >
-          <h3>New App Connection String:</h3>
-          <textarea
-            value={lastCreatedNwcUrl}
-            readOnly
-            style={{
-              width: "90%",
-              minHeight: "60px",
-              marginBottom: "10px",
-              fontFamily: "monospace",
-              resize: "none",
-            }}
-          />
-          <button onClick={copyToClipboard} style={{ marginRight: "10px" }}>
-            {copySuccess || "Copy URL"}
-          </button>
-          <div style={{ marginTop: "15px" }}>
-            <QRCodeCanvas value={lastCreatedNwcUrl} size={128} />
-          </div>
-        </div>
+        <Card className="mt-5">
+          <CardHeader>
+            <CardTitle>Connect your App</CardTitle>
+            <CardDescription>
+              Scan the QR Code or copy & paste the connection secret
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 justify-start items-start">
+            <div className="bg-white p-2 rounded-lg">
+              <QRCodeCanvas value={lastCreatedNwcUrl} size={150} />
+            </div>
+            <div className="flex flex-row items-center gap-2 flex-1 w-full">
+              <Input
+                value={lastCreatedNwcUrl}
+                readOnly
+                className="font-mono w-full"
+              />
+              <Button onClick={copyToClipboard} variant="outline">
+                <Copy className="w-4 h-4 mr-2" />
+                Copy
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
       {/* Display existing apps */}
       <h3 className="text-2xl font-semibold my-5">Connected Apps</h3>
       {isLoading && <p>Loading apps...</p>}
       {error && !lastCreatedNwcUrl && (
-        <p style={{ color: "red" }}>Error: {error}</p>
+        <p className="text-red-500">Error: {error}</p>
       )}{" "}
       {/* Show fetch error only if not showing NWC URL */}
       {!isLoading && !error && (
         <>
           {apps.length === 0 ? (
-            <p>No apps connected yet.</p>
+            <p className="text-muted-foreground">No apps connected yet.</p>
           ) : (
             <div className="grid grid-cols-1 gap-3">
               {apps.map((app, index) => (
