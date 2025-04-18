@@ -55,7 +55,7 @@ function App() {
     <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
       <SparkleEffect count={70} />
       <header className="flex flex-col gap-3 items-center justify-center mb-10">
-        <Link to="/">
+        <Link to="/" className="z-10">
           <img src={Logo} alt="Logo" />
         </Link>
         <p className="text-muted-foreground">
