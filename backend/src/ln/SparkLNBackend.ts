@@ -1,18 +1,17 @@
-import {
-  Nip47ListTransactionsRequest,
-  Nip47ListTransactionsResponse,
-  Nip47GetInfoResponse,
-  Nip47SingleMethod,
-  Nip47MakeInvoiceRequest,
-  Nip47Transaction,
-  Nip47LookupInvoiceRequest,
-  Nip47GetBalanceResponse,
-  Nip47PayInvoiceRequest,
-  Nip47PayResponse,
-} from "@getalby/sdk/dist/nwc";
-import { LNBackend } from "./LNBackend";
 import { SparkWallet } from "@buildonspark/spark-sdk";
 import { Invoice } from "@getalby/lightning-tools";
+import {
+  Nip47GetBalanceResponse,
+  Nip47GetInfoResponse,
+  Nip47ListTransactionsRequest,
+  Nip47ListTransactionsResponse,
+  Nip47MakeInvoiceRequest,
+  Nip47PayInvoiceRequest,
+  Nip47PayResponse,
+  Nip47SingleMethod,
+  Nip47Transaction,
+} from "@getalby/sdk/dist/nwc";
+import { LNBackend } from "./LNBackend";
 
 export class SparkLNBackend implements LNBackend {
   private _wallet?: SparkWallet;
@@ -85,7 +84,7 @@ export class SparkLNBackend implements LNBackend {
       memo: request.description,
     });
 
-    const invoice = new Invoice({ pr: sparkInvoice.invoice.encodedEnvoice });
+    const invoice = new Invoice({ pr: sparkInvoice.invoice.encodedInvoice });
 
     const transaction: Nip47Transaction = {
       type: "incoming",
@@ -129,7 +128,7 @@ export class SparkLNBackend implements LNBackend {
         request.sparkRequestId
       );
     }
-    console.log("Checked spark request", request, response);
+    // console.log("Checked spark request", request, response);
     if (response?.status === "TRANSFER_COMPLETED") {
       // TODO: add fees
       return {
