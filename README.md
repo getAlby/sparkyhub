@@ -1,6 +1,14 @@
-# Spark NWC
+# Sparky Hub
 
-Multi-User NWC Wallet Service using Spark
+Multi-User [NWC](https://nwc.dev/) Wallet Service using [Spark](https://docs.spark.info/) to enable each user to have their own keys.
+
+**WARNING: THIS IS AN ALBY EXPERIMENTAL HACK DAY PROJECT**
+
+- Spark is very unstable right now and has almost daily breaking changes.
+- Currently mnemonics are stored as plaintext. We did not focus on security as part of this hackday project and are still considering options for a secure multi-user wallet service.
+- Do not put more than 100 sats into the wallet - we give no guarantee that the funds will always be accessible
+
+Try it here: [Sparky Hub](https://sparkyhub.albylabs.com/)
 
 ## Development
 
