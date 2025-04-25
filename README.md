@@ -5,6 +5,7 @@ Multi-User [NWC](https://nwc.dev/) Wallet Service using [Spark](https://docs.spa
 **WARNING: THIS IS AN ALBY EXPERIMENTAL HACK DAY PROJECT**
 
 - Spark is very unstable right now and has almost daily breaking changes.
+- Spark has not implemented unilateral withdrawal yet.
 - Currently mnemonics are stored as plaintext. We did not focus on security as part of this hackday project and are still considering options for a secure multi-user wallet service.
 - Do not put more than 100 sats into the wallet - we give no guarantee that the funds will always be accessible
 
