@@ -7,6 +7,7 @@ import Logo from "./assets/logo.svg";
 import { MnemonicManager } from "./components/MnemonicManager";
 import SparkleEffect from "./components/SparkleEffect";
 import { Button } from "./components/ui/button";
+import WarningBanner from "./components/WarningBanner";
 import { useAuth } from "./context/AuthContext"; // Import useAuth
 import LoginPage from "./pages/Login"; // Import LoginPage
 import SignupPage from "./pages/Signup"; // Import SignupPage
@@ -52,7 +53,8 @@ function App() {
   // }
 
   return (
-    <div className="font-sans flex flex-col items-center justify-center min-h-screen py-8">
+    <div className="font-sans flex flex-col items-center justify-center min-h-screen pb-8">
+      <WarningBanner />
       <SparkleEffect count={70} />
       <header className="flex flex-col gap-3 items-center justify-center mb-10">
         <Link to="/" className="z-10">
@@ -91,7 +93,7 @@ function App() {
           element={
             <>
               <div className="w-full max-w-screen-md">
-                <div className="flex justify-end gap-4 -mt-29">
+                <div className="flex justify-end gap-4 pr-2 pb-2 -mt-6 sm:-mt-29">
                   <Link to="/security">
                     <Button variant="outline" size="icon">
                       <ShieldIcon />
@@ -102,7 +104,7 @@ function App() {
                   </Button>
                 </div>
               </div>
-              <div className="flex-1 w-full max-w-screen-md">
+              <div className="flex-1 w-full max-w-screen-md px-2">
                 <ProtectedRoute>
                   <Outlet />
                 </ProtectedRoute>
