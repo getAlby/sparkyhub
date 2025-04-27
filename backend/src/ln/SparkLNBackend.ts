@@ -38,8 +38,6 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
-    // always claim. TODO: don't do this as it's inefficient
-    this._wallet.claimTransfers();
 
     // we use the DB here, we don't go directly to the LN wallet.
     return {
@@ -115,8 +113,6 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
-    // always claim. TODO: don't do this as it's inefficient
-    this._wallet.claimTransfers();
 
     let response;
     if (request.type === "incoming") {
@@ -141,8 +137,7 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
-    const claimed = await this._wallet.claimTransfers();
-    console.log({ claimed });
+
     const balance = await this._wallet.getBalance();
     return {
       balance: Number(balance.balance) * 1000,
@@ -154,14 +149,36 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
+    const fee = await this._wallet.getLightningSendFeeEstimate({
+      encodedInvoice: request.invoice,
+    });
+    if (!fee) {
+      throw new Error("failed to fetch fee estimate");
+    }
+    if (
+      fee.feeEstimate.originalUnit !== "MILLISATOSHI" &&
+      fee.feeEstimate.originalUnit !== "SATOSHI"
+    ) {
+      throw new Error(
+        "Unknown fee estimate unit: " + fee.feeEstimate.originalUnit
+      );
+    }
+
+    let feeSats = fee.feeEstimate.originalValue;
+    if (fee.feeEstimate.originalUnit === "MILLISATOSHI") {
+      feeSats = Math.ceil(feeSats / 1000);
+    }
+
     const response = await this._wallet.payLightningInvoice({
       invoice: request.invoice,
+      maxFeeSats: feeSats,
     });
 
-    console.log("Invoice Response:", response);
+    // console.log("Invoice Response:", response);
 
-    // FIXME: need to check status of spark request
-    // but also need to make sure to return the sparkRequestId so we can save the pending payment
+    // FIXME: need to check status of spark request -
+    // we currently assume status LIGHTNING_PAYMENT_INITIATED is paid which is incorrect.
+    // but also need to to return the sparkRequestId so we can save the pending payment
     return {
       preimage: response.id, // FIXME: fake preimage
       fees_paid: response.fee.originalValue,
