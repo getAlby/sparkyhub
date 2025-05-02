@@ -14,10 +14,10 @@
   resolved "https://registry.npmjs.org/@bufbuild/protobuf/-/protobuf-2.2.5.tgz"
   integrity sha512-/g5EzJifw5GF8aren8wZ/G5oMuPoGeS6MQD3ca8ddcvdXR5UELUfdTZITCGNhNXynY/AYl3Z4plmxdj/tRl/hQ==
 
-"@buildonspark/lrc20-sdk@0.0.35":
-  version "0.0.35"
-  resolved "https://registry.yarnpkg.com/@buildonspark/lrc20-sdk/-/lrc20-sdk-0.0.35.tgz#a4fe1a029602d719684bb6ffa902536ec200d030"
-  integrity sha512-623rqfQRkkS75TTOGoA4B7kktrGid+b2QAPq0AmsOFqxT9vcHsbJt8AMxBynCV5dfFPX5yH92y7KIvADLeEQ4Q==
+"@buildonspark/lrc20-sdk@0.0.38":
+  version "0.0.38"
+  resolved "https://registry.yarnpkg.com/@buildonspark/lrc20-sdk/-/lrc20-sdk-0.0.38.tgz#544648ae91e690478cdeff1f18d0d4dfca9ccc64"
+  integrity sha512-soLSPLs5dZ46x3dr8RrejsUMm0545n6uu0is6IrWPixlxKY+Xb1zg4+OzooXg6WiF38eRZ8q5fThMsDgEGxPJQ==
   dependencies:
     "@bitcoinerlab/secp256k1" "^1.1.1"
     "@bufbuild/protobuf" "^2.2.5"
@@ -36,13 +36,13 @@
     ts-proto "^2.6.1"
     varuint-bitcoin "^1.1.2"
 
-"@buildonspark/spark-sdk@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@buildonspark/spark-sdk/-/spark-sdk-0.1.7.tgz#bfaf2a69b6d4cff9173e55cb70507aa5e6ad1f95"
-  integrity sha512-bKIXoYkykmz2k+HbuGnu97L6Rt5dUHMl4OmeDbhHmpKbWqfm8JmpmtON+sQ9yOp7jhDKOXbkmgRGJxAE6+mBew==
+"@buildonspark/spark-sdk@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@buildonspark/spark-sdk/-/spark-sdk-0.1.10.tgz#59e4e47f7297e8261bfadfb68a5e202dc0f8aa75"
+  integrity sha512-M1K7rJd5rOegZpYQZ7n6hIFa3JRQajvgtxaDfggzN+BxqDST1HtajTGpRUdxxi/J7BUWHjtnns7E3kx64QaXtQ==
   dependencies:
     "@bufbuild/protobuf" "^2.2.5"
-    "@buildonspark/lrc20-sdk" "0.0.35"
+    "@buildonspark/lrc20-sdk" "0.0.38"
     "@lightsparkdev/core" "^1.3.0"
     "@noble/curves" "^1.8.0"
     "@noble/hashes" "^1.7.1"

@@ -181,10 +181,20 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
         `Saved pending outgoing transaction for invoice ${invoice.paymentHash} (User: ${this._userId}, App: ${this._appId})`
       );
 
-      const result = await this._wallet.payInvoice(request);
+      const result = await this._wallet.payInvoice(
+        request,
+        (sparkRequestId) => {
+          this._prisma.transaction.update({
+            where: {
+              id: transaction.id,
+            },
+            data: {
+              spark_request_id: sparkRequestId,
+            },
+          });
+        }
+      );
 
-      // TODO: check if the result was actually paid, otherwise
-      // do not update the transaction (apart from the request id)
       await this._prisma.transaction.update({
         where: {
           id: transaction.id,
@@ -193,8 +203,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
           preimage: result.preimage,
           settled_at: new Date(),
           state: "settled" satisfies Nip47Transaction["state"],
-          fees_paid_msat: 0, // TODO: result.fees_paid, (check it is msat)
-          spark_request_id: result.sparkRequestId,
+          fees_paid_msat: result.fees_paid * 1000,
         },
       });
 

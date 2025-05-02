@@ -18,6 +18,7 @@ export interface LNBackend {
   }): Promise<{ preimage?: string }>;
   getBalance(): Promise<nwc.Nip47GetBalanceResponse>;
   payInvoice(
-    request: nwc.Nip47PayInvoiceRequest
-  ): Promise<nwc.Nip47PayResponse & { sparkRequestId: string }>;
+    request: nwc.Nip47PayInvoiceRequest,
+    onReceivedSparkRequestId: (sparkRequestId: string) => void
+  ): Promise<nwc.Nip47PayResponse>;
 }

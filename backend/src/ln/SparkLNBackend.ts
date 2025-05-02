@@ -115,6 +115,7 @@ export class SparkLNBackend implements LNBackend {
     }
 
     let response;
+    let preimage: string | undefined;
     if (request.type === "incoming") {
       response = await this._wallet.getLightningReceiveRequest(
         request.sparkRequestId
@@ -123,12 +124,22 @@ export class SparkLNBackend implements LNBackend {
       response = await this._wallet.getLightningSendRequest(
         request.sparkRequestId
       );
+      preimage = response?.paymentPreimage;
     }
-    // console.log("Checked spark request", request, response);
+
     if (response?.status === "TRANSFER_COMPLETED") {
+      if (!preimage) {
+        if (request.type === "outgoing") {
+          throw new Error("No preimage in completed outgoing payment");
+        }
+        console.warn(
+          "No payment preimage in response, using response id as fake preimage"
+        );
+        preimage = response.id;
+      }
       // TODO: add fees
       return {
-        preimage: request.sparkRequestId, // FIXME: fake preimage
+        preimage,
       };
     }
     return {};
@@ -144,45 +155,45 @@ export class SparkLNBackend implements LNBackend {
     };
   }
   async payInvoice(
-    request: Nip47PayInvoiceRequest
-  ): Promise<Nip47PayResponse & { sparkRequestId: string }> {
+    request: Nip47PayInvoiceRequest,
+    onReceivedSparkRequestId: (sparkRequestId: string) => void
+  ): Promise<Nip47PayResponse> {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
     const fee = await this._wallet.getLightningSendFeeEstimate({
       encodedInvoice: request.invoice,
     });
-    if (!fee) {
+    if (fee === undefined) {
       throw new Error("failed to fetch fee estimate");
     }
-    if (
-      fee.feeEstimate.originalUnit !== "MILLISATOSHI" &&
-      fee.feeEstimate.originalUnit !== "SATOSHI"
-    ) {
-      throw new Error(
-        "Unknown fee estimate unit: " + fee.feeEstimate.originalUnit
-      );
-    }
 
-    let feeSats = fee.feeEstimate.originalValue;
-    if (fee.feeEstimate.originalUnit === "MILLISATOSHI") {
-      feeSats = Math.ceil(feeSats / 1000);
-    }
-
-    const response = await this._wallet.payLightningInvoice({
+    // console.log("Fee estimate", fee);
+    let initialResponse = await this._wallet.payLightningInvoice({
       invoice: request.invoice,
-      maxFeeSats: feeSats,
+      maxFeeSats: fee,
     });
+    // spark request ID is needed to later lookup the invoice
+    onReceivedSparkRequestId(initialResponse.id);
 
-    // console.log("Invoice Response:", response);
+    let preimage: string | undefined;
+    for (let i = 0; i < 60; i++) {
+      const response = await this._wallet.getLightningSendRequest(
+        initialResponse.id
+      );
+      if (response?.paymentPreimage) {
+        preimage = response.paymentPreimage;
+        break;
+      }
+    }
 
-    // FIXME: need to check status of spark request -
-    // we currently assume status LIGHTNING_PAYMENT_INITIATED is paid which is incorrect.
-    // but also need to to return the sparkRequestId so we can save the pending payment
+    if (!preimage) {
+      throw new Error("No preimage found, timeout?");
+    }
+
     return {
-      preimage: response.id, // FIXME: fake preimage
-      fees_paid: response.fee.originalValue,
-      sparkRequestId: response.id,
+      preimage: preimage || initialResponse.id,
+      fees_paid: initialResponse.fee.originalValue,
     };
   }
 }
