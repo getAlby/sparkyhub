@@ -15,7 +15,7 @@ export interface LNBackend {
   lookupInvoice(request: {
     type: nwc.Nip47Transaction["type"];
     sparkRequestId: string;
-  }): Promise<{ preimage?: string }>;
+  }): Promise<{ preimage?: string; fees_paid?: number }>;
   getBalance(): Promise<nwc.Nip47GetBalanceResponse>;
   payInvoice(
     request: nwc.Nip47PayInvoiceRequest,

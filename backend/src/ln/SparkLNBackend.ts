@@ -109,37 +109,39 @@ export class SparkLNBackend implements LNBackend {
   async lookupInvoice(request: {
     type: Nip47Transaction["type"];
     sparkRequestId: string;
-  }): Promise<{ preimage?: string }> {
+  }): Promise<{ preimage?: string; fees_paid?: number }> {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
 
     let response;
     let preimage: string | undefined;
+    let fees_paid: number | undefined;
     if (request.type === "incoming") {
       response = await this._wallet.getLightningReceiveRequest(
         request.sparkRequestId
       );
+      if (!response) {
+        throw new Error("failed to fetch lightning receive request");
+      }
     } else {
       response = await this._wallet.getLightningSendRequest(
         request.sparkRequestId
       );
-      preimage = response?.paymentPreimage;
+      if (!response) {
+        throw new Error("failed to fetch lightning send request");
+      }
+      fees_paid = response.fee.originalValue * 1000;
     }
 
-    if (response?.status === "TRANSFER_COMPLETED") {
+    if (response.status === "TRANSFER_COMPLETED") {
+      preimage = response.paymentPreimage;
       if (!preimage) {
-        if (request.type === "outgoing") {
-          throw new Error("No preimage in completed outgoing payment");
-        }
-        console.warn(
-          "No payment preimage in response, using response id as fake preimage"
-        );
-        preimage = response.id;
+        throw new Error("No preimage in completed outgoing payment");
       }
-      // TODO: add fees
       return {
         preimage,
+        fees_paid,
       };
     }
     return {};
@@ -161,17 +163,21 @@ export class SparkLNBackend implements LNBackend {
     if (!this._wallet) {
       throw new Error("wallet not initialized");
     }
-    const fee = await this._wallet.getLightningSendFeeEstimate({
+    const maxFeeSats = await this._wallet.getLightningSendFeeEstimate({
       encodedInvoice: request.invoice,
     });
-    if (fee === undefined) {
+    if (maxFeeSats === undefined) {
       throw new Error("failed to fetch fee estimate");
+    }
+    const satoshi = new Invoice({ pr: request.invoice }).satoshi;
+    if (!satoshi) {
+      throw new Error("0-amount invoices not supported");
     }
 
     // console.log("Fee estimate", fee);
     let initialResponse = await this._wallet.payLightningInvoice({
       invoice: request.invoice,
-      maxFeeSats: fee,
+      maxFeeSats,
     });
     // spark request ID is needed to later lookup the invoice
     onReceivedSparkRequestId(initialResponse.id);
@@ -181,7 +187,10 @@ export class SparkLNBackend implements LNBackend {
       const response = await this._wallet.getLightningSendRequest(
         initialResponse.id
       );
-      if (response?.paymentPreimage) {
+      if (!response) {
+        throw new Error("Failed to fetch lightning send request");
+      }
+      if (response.paymentPreimage) {
         preimage = response.paymentPreimage;
         break;
       }
@@ -193,7 +202,7 @@ export class SparkLNBackend implements LNBackend {
 
     return {
       preimage: preimage || initialResponse.id,
-      fees_paid: initialResponse.fee.originalValue,
+      fees_paid: initialResponse.fee.originalValue * 1000,
     };
   }
 }

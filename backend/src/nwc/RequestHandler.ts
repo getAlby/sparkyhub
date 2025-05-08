@@ -134,7 +134,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
             preimage: result.preimage,
             settled_at: new Date(),
             state: "settled" satisfies Nip47Transaction["state"],
-            fees_paid_msat: 0, // TODO:
+            fees_paid_msat: result.fees_paid,
           },
         });
       }
@@ -156,7 +156,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
     request: nwc.Nip47PayInvoiceRequest
   ): nwc.NWCWalletServiceResponsePromise<nwc.Nip47PayResponse> {
     try {
-      // TODO: save the transaction as pending
+      // FIXME: payment retries fail due to unique payment hash constraint in DB
 
       const invoice = new Invoice({
         pr: request.invoice,
@@ -203,7 +203,7 @@ export class RequestHandler implements nwc.NWCWalletServiceRequestHandler {
           preimage: result.preimage,
           settled_at: new Date(),
           state: "settled" satisfies Nip47Transaction["state"],
-          fees_paid_msat: result.fees_paid * 1000,
+          fees_paid_msat: result.fees_paid,
         },
       });
 
